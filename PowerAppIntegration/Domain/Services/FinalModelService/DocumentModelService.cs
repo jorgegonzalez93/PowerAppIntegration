@@ -163,11 +163,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                         requisitosLegalesDocuments.Apodera = apoderadoValidacion.Equals("Apoderado");
                         requisitosLegalesDocuments.Esp = EspCompany.Equals("1");
                         requisitosLegalesDocuments.DocumentosOpcionales = docsOpcionales;
-
-
-
-
-
+                        requisitosLegalesDocuments.Estado = state;
                     }
 
 
