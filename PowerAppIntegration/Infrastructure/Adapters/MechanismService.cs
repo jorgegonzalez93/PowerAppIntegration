@@ -1,4 +1,5 @@
-﻿using Migration.Domain.Domain.DTOs.MigracionActividad;
+﻿using MediatR;
+using Migration.Domain.Domain.DTOs.MigracionActividad;
 using Migration.Domain.Infrastructure.Logs;
 
 namespace Migration.Domain.Infrastructure.Adapters;
@@ -17,7 +18,11 @@ public class MechanismService
 
     public async Task SaveDynamicFormAsync(ParticipationDataInputDto participationDataInput)
     {
-        Guid participationId = await GenericHttpRequest.DynamicFromPostDataAsync<Guid>(PATH_DYNAMIC_FORM, participationDataInput);
+
+
+        Guid participationId = await GenericHttpRequest.DynamicFromPostDataAsync<Guid>(PATH_DYNAMIC_FORM, new CreateDynamicFormCommand(participationDataInput));
         ApplicationLogService.GenerateLogByMessage(nameof(participationId), participationId.ToString(), "PARTICIPATIONIDS");
     }
 }
+
+public record CreateDynamicFormCommand(ParticipationDataInputDto ParticipationDataDto);
