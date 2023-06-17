@@ -1,4 +1,4 @@
-﻿using Migration.Domain.Domain.DTOs;
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 
 namespace Migration.Domain.Infrastructure.Adapters
 {

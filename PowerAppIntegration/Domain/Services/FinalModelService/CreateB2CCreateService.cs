@@ -1,4 +1,4 @@
-﻿using Migration.Domain.Domain.DTOs;
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using System.Data;
 
 namespace Migration.Domain.Domain.Services.FinalModelService

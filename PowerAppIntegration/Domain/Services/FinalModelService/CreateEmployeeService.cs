@@ -1,4 +1,4 @@
-﻿using Migration.Domain.Domain.DTOs;
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using Migration.Domain.Domain.Helpers;
 using System.Data;
 
@@ -12,8 +12,6 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
             string fullName = newEmployee[Enums.Contact.UserName.GetDescription()].ToString()!;
 
-            string userNickName = newEmployee[Enums.Contact.IdentityUsername.GetDescription()].ToString()!;
-
             string identificationType = newEmployee[Enums.Contact.IdentificationType.GetDescription()].ToString()!;
 
             string telephoneNumber = newEmployee[Enums.Contact.Telephone.GetDescription()].ToString()!;
@@ -26,7 +24,6 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
             identificationType = CleanDataHelper.CleanIdentificationType(identificationType);
 
-            userNickName = CleanDataHelper.CleanUserNickName(email, userNickName);
 
             fullName = CleanDataHelper.CleanFullUserName(email, fullName);
 
@@ -59,7 +56,6 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                 Identification = string.Empty,
                 IdentificationCard = string.Empty,
                 Mobile = telephoneNumber,
-                UserName = userNickName,
                 PersonTypeId = string.Empty,
                 PersonType = personTypeName,
                 CompanyIdentification = companyIdentification

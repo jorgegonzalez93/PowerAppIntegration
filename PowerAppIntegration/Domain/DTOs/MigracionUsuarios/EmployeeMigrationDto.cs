@@ -1,9 +1,10 @@
-﻿namespace Migration.Domain.Domain.DTOs
+﻿namespace Migration.Domain.Domain.DTOs.MigracionUsuarios
 {
-    public class RegistryEmployeeDto
+#nullable enable
+    public class EmployeeMigrationDto
     {
-        public Guid AdUserId { get; set; }
         public string IdentificationTypeId { get; set; }
+        public Guid AdUserId { get; set; }
         public string JobTitle { get; set; } = default!;
         public string Identification { get; set; } = default!;
         public string FullName { get; set; } = default!;
@@ -12,8 +13,12 @@
         public string Telephone { get; set; } = default!;
         public string IdentificationCard { get; set; } = default!;
         public string ExistenceDocument { get; set; } = default!;
-        public string Rut { get; set; } = default!;
-        public string Sarlaft { get; set; } = default!;
-        public string PersonType { get; set; } = default!;
+        public bool IsFromOds { get; set; }
+        public bool IsFromMvn { get; set; }
+        public string UserName { get; set; } = default!;
+        public string PersonTypeId { get; set; }
+        public string PersonType { get; set; }
+        public string CompanyId { get; set; }
+        public string CompanyIdentification { get; set; }
     }
 }

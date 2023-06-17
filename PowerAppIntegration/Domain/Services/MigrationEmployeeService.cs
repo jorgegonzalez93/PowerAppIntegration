@@ -1,4 +1,4 @@
-﻿using Migration.Domain.Domain.DTOs;
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using Migration.Domain.Domain.Services.FinalModelService;
 using Migration.Domain.Infrastructure.Adapters;
 using Migration.Domain.Infrastructure.Logs;
@@ -8,16 +8,11 @@ namespace Migration.Domain.Domain.Services
 {
     public class MigrationEmployeeService
     {
-        private ValidationMigrationService RequiredFieldsMigration { get; set; }
-        private AgentService AgentService { get; set; }
-
-        private B2CCreateUser B2CCreateUser { get; set; }
+        private ValidationMigrationService RequiredFieldsMigration { get; set; }      
 
         public MigrationEmployeeService()
         {
             RequiredFieldsMigration = new();
-            AgentService = new();
-            B2CCreateUser = new();
         }
 
         public RegistryDto? MigrateContactAsync(DataRow contact)
@@ -105,39 +100,6 @@ namespace Migration.Domain.Domain.Services
             }
 
             return string.Empty;
-        }
-
-        public RegistryCompanyDto? MigrateCompanyAsync(DataRow company)
-        {
-            RegistryCompanyDto registryCompanyDto;
-
-            ValidationMigrationService requiredFields = RequiredFieldsMigration.CompanyRequired();
-
-            bool createCompany = RequiredFieldsMigration.ProspectiveData(company, requiredFields);
-
-            if (!createCompany)
-            {
-                return null;
-            }
-
-            CompanyDataCreateCommand newCompany = CreateCompanyService.CreateCompanyObject(company);
-
-            registryCompanyDto = new()
-            {
-                CompanyIdentification = newCompany.CompanyIdentification,
-                CompanyAbbreviation = newCompany.companyAbreviation,
-                CompanyAddress = newCompany.CompanyAddress,
-                IsMarketAgent = false,
-                CompanyName = newCompany.CompanyName,
-                CompanyTelephone = newCompany.CompanyTelephone,
-                CountryId = newCompany.CountryId,
-                CompanyTypeId = newCompany.CompanyTypeId,
-                Status = newCompany.status,
-                CreateDate = newCompany.dateCreate,
-                PersonTypeCompany = newCompany.personType
-            };
-
-            return registryCompanyDto;
         }
     }
 }

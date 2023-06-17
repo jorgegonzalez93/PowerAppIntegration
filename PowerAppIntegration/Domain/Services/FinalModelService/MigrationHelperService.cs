@@ -1,8 +1,8 @@
-﻿using Migration.Domain.Domain.DTOs;
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using Migration.Domain.Domain.Enums;
 using Migration.Domain.Domain.Helpers;
 using System.Data;
-using static Migration.Domain.Domain.DTOs.MigrationPackDto;
+using static Migration.Domain.Domain.DTOs.MigracionUsuarios.MigrationPackDto;
 using static Migration.Domain.Domain.Services.FinalModelService.DocumentModelService;
 
 namespace Migration.Domain.Domain.Services.FinalModelService
@@ -11,22 +11,8 @@ namespace Migration.Domain.Domain.Services.FinalModelService
     {
         public static List<string> SetRequiredDocumentByUser(DataRow validContact)
         {
-            List<string> requiredDocuments;
-            if (validContact.GetValueData(Enums.Contact.PersonType.GetDescription()).Contains(GeneralData.ENTITY_PERSON, StringComparison.InvariantCultureIgnoreCase))
-            {
-                if (validContact.GetValueData(Enums.Contact.JobTitle.GetDescription()).Contains(GeneralData.PERSON_REPRESENTATIVE_ROL, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    requiredDocuments = GeneralData.REQUIRED_DOCUMENTS_LEGAL_ENTITY_REPRESENTATIVE;
-                }
-                else
-                {
-                    requiredDocuments = GeneralData.REQUIRED_DOCUMENTS_LEGAL_ENTITY_OTHER;
-                }
-            }
-            else
-            {
-                requiredDocuments = GeneralData.REQUIRED_DOCUMENTS_NATURAL;
-            }
+            List<string> requiredDocuments = new();
+           
 
             return requiredDocuments;
         }
@@ -44,9 +30,6 @@ namespace Migration.Domain.Domain.Services.FinalModelService
             }
             else
             {
-                // valida si existe un usuario completo con usuario en b2c 
-                contactlegalRepresentative = validWithEmailAndNIT
-                    .FirstOrDefault(query => query[Enums.Contact.IdentityUsername.GetDescription()].ToString()! != string.Empty);
 
                 if (contactlegalRepresentative is not null)
                 {
@@ -75,14 +58,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
         public static void SetPersonTypeByFolder(EmailDocuments document, DataRow validContact)
         {
-            if (document.PersonTypeFolder.Contains(GeneralData.ENTITY_PERSON, StringComparison.InvariantCultureIgnoreCase))
-            {
-                validContact[Enums.Contact.PersonType.GetDescription()] = GeneralData.ENTITY_PERSON;
-            }
-            else
-            {
-                validContact[Enums.Contact.PersonType.GetDescription()] = GeneralData.NATURAL_PERSON;
-            }
+
         }
 
         public static List<string> ValidateIncompleteDocuments(EmailDocuments documents, List<string> requiredDocuments)

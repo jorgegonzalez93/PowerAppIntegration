@@ -1,4 +1,4 @@
-﻿namespace Migration.Domain.Domain.DTOs
+﻿namespace Migration.Domain.Domain.DTOs.MigracionUsuarios
 {
 
     public record CompanyDataCreateCommand(string CompanyTypeId,

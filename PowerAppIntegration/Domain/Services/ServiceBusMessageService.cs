@@ -14,7 +14,7 @@ namespace Migration.Domain.Domain.Services
             _serviceBusClient = new(CONNECTIONSTRING);
         }
 
-        public async Task SendMessageAsync(DTOs.Message message, string queueOrTopicName, string label = null)
+        public async Task SendMessageAsync(DTOs.MigracionUsuarios.Message message, string queueOrTopicName, string label = null)
         {
             var oMessage = new ServiceBusMessage(JsonConvert.SerializeObject(message));
 

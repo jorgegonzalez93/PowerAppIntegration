@@ -1,21 +1,18 @@
 ﻿using Migration.Domain.Domain;
-using Migration.Domain.Domain.DTOs;
+using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using Migration.Domain.Domain.Enums;
 using Migration.Domain.Domain.Helpers;
-using Migration.Domain.Domain.Services;
 using Migration.Domain.Domain.Services.FinalModelService;
 using Migration.Domain.Infrastructure.Logs;
-using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Data;
-using static Migration.Domain.Domain.DTOs.MigrationPackDto;
+using static Migration.Domain.Domain.DTOs.MigracionUsuarios.MigrationPackDto;
 using static Migration.Domain.Domain.Services.FinalModelService.DocumentModelService;
 
 namespace PowerAppIntegration
 {
     public partial class PowerAppForm : Form
     {
-        private MigrationEmployeeService MigrationEmployeeService { get; set; }
         public delegate Task ReportLogAsyncDelegate(string mensaje, Color color);
 
         ReportLogAsyncDelegate reportLogAsyncDelegate;
@@ -24,59 +21,18 @@ namespace PowerAppIntegration
         {
             InitializeComponent();
 
-            MigrationEmployeeService = new();
-
             GeneralData.DT_CONTACT = new DataTable();
-            GeneralData.DT_COMPANY = new DataTable();
 
             dataGridView1.Dock = DockStyle.Fill;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.RowHeadersVisible = false;
-
 
             reportLogAsyncDelegate = new(ReportLogAsync);
 
             serviceDocuments = new(reportLogAsyncDelegate);
         }
 
-        private void contactImport_Click(object sender, EventArgs e)
-        {
-            ContactsTableCreate();
-
-            saveContactsButton.Enabled = true;
-            saveCompany.Enabled = false;
-        }
-
-        private void ContactsTableCreate()
-        {
-            GeneralData.DT_CONTACT = new();
-
-            IEnumerable<string> contactColumns = EnumHelper.GetListOfDescription<Migration.Domain.Domain.Enums.Contact>();
-
-            foreach (string contactColumn in contactColumns)
-            {
-                GeneralData.DT_CONTACT.Columns.Add(contactColumn, typeof(string));
-            }
-
-            dataGridView1.DataSource = GeneralData.DT_CONTACT;
-        }
-
-        private void companyImport_Click(object sender, EventArgs e)
-        {
-            IEnumerable<string> companyColumns = EnumHelper.GetListOfDescription<Company>();
-
-            GeneralData.DT_COMPANY = new();
-            foreach (string contactColumn in companyColumns)
-            {
-                GeneralData.DT_COMPANY.Columns.Add(contactColumn, typeof(string));
-            }
-
-            dataGridView1.DataSource = GeneralData.DT_COMPANY;
-
-            saveCompany.Enabled = true;
-            saveContactsButton.Enabled = false;
-        }
-
+        #region PEGAR DATOS
         private void dataGridView1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.V)
@@ -140,141 +96,21 @@ namespace PowerAppIntegration
                 }
             }
         }
+        #endregion
 
-        private async void saveContactsButton_Click(object sender, EventArgs e)
+        #region PROCESAR DATOS
+        private void button1_Click(object sender, EventArgs e)
         {
-            if (GeneralData.DT_CONTACT is null || GeneralData.DT_CONTACT.Rows.Count <= 0)
+
+            if (backgroundWorkerProcesarDatos.IsBusy)
             {
                 return;
             }
 
-            if (backgroundWorkerContact.IsBusy)
-            {
-                return;
-            }
-
-            backgroundWorkerContact.RunWorkerAsync();
-
+            backgroundWorkerProcesarDatos.RunWorkerAsync();
         }
 
-        private async void saveCompany_Click(object sender, EventArgs e)
-        {
-            if (GeneralData.DT_COMPANY is null || GeneralData.DT_COMPANY.Rows.Count <= 0)
-            {
-                return;
-            }
-
-            if (backgroundWorkerCompany.IsBusy)
-            {
-                return;
-            }
-
-            backgroundWorkerCompany.RunWorkerAsync();
-        }
-
-        private async void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            GeneralData.REGISTRY_COMPANYS = new List<RegistryCompanyDto?>();
-
-            foreach (DataRow company in GeneralData.DT_COMPANY.Rows)
-            {
-                CleanDataService.CleanDataRowCompany(company);
-
-                GeneralData.REGISTRY_COMPANYS.Add(MigrationEmployeeService.MigrateCompanyAsync(company));
-
-                int currentIndex = GeneralData.DT_COMPANY.Rows.IndexOf(company);
-                int progressPercentage = (int)(((double)currentIndex / GeneralData.DT_COMPANY.Rows.Count) * 100);
-
-                backgroundWorkerCompany.ReportProgress(progressPercentage);
-            }
-
-            var companylist = new List<CompanyDataDto>();
-            foreach (DataRow item in GeneralData.DT_COMPANY.Rows)
-            {
-                companylist.Add(new()
-                {
-                    CompanyIdentification = item.GetValueData(Company.CompanyIdentification.GetDescription()),
-                    CreateDate = item.GetValueData(Company.DateCreate.GetDescription())
-                });
-            }
-            var json = JsonConvert.SerializeObject(companylist);
-
-            backgroundWorkerCompany.ReportProgress(100);
-        }
-
-        private void backgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
-        {
-            companyProgressBar.Value = e.ProgressPercentage;
-        }
-
-        private void backgroundWorkerCompany_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            saveCompany.Enabled = true;
-        }
-
-        private void backgroundWorkerContact_DoWork(object sender, DoWorkEventArgs e)
-        {
-            List<RegistryDto> registryList = new();
-            foreach (DataRow contact in GeneralData.DT_CONTACT.Rows)
-            {
-                RegistryDto? registry = MigrationEmployeeService.MigrateContactAsync(contact);
-
-                int currentIndex = GeneralData.DT_CONTACT.Rows.IndexOf(contact);
-                int progressPercentage = (int)(((double)currentIndex / GeneralData.DT_CONTACT.Rows.Count) * 100);
-
-                if (registry is not null && !registryList.Any(reg => reg.EmployeeInformation.Email == registry.EmployeeInformation.Email))
-                {
-                    registryList.Add(registry);
-                }
-
-                backgroundWorkerContact.ReportProgress(progressPercentage);
-            }
-
-            CreateJsonResponse<RegistryDto>.CrateJSONResponse(registryList, "JsonContacto", "Employee");
-
-            backgroundWorkerContact.ReportProgress(100);
-        }
-
-        private void backgroundWorkerContact_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            contactProgressBar.Value = e.ProgressPercentage;
-        }
-
-        private void backgroundWorkerContact_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            saveContactsButton.Enabled = true;
-        }
-
-        private void CreateJSONB2C(object sender, EventArgs e)
-        {
-            List<B2CDataUser> b2CCreateUser = new();
-            foreach (DataRow contact in GeneralData.DT_CONTACT.Rows)
-            {
-                B2CDataUser? _B2CCreateUser = CreateB2CCreateService.CreateB2CObject(contact);
-
-                int currentIndex = GeneralData.DT_CONTACT.Rows.IndexOf(contact);
-                int progressPercentage = (int)(((double)currentIndex / GeneralData.DT_CONTACT.Rows.Count) * 100);
-
-                if (_B2CCreateUser is not null && !b2CCreateUser.Any(b2c => b2c.mail == _B2CCreateUser.mail))
-                {
-                    b2CCreateUser.Add(_B2CCreateUser);
-                }
-
-                backgroundWorkerContact.ReportProgress(progressPercentage);
-            }
-
-            CreateJsonResponse<B2CCreateUser>.CrateJSONResponse(b2CCreateUser, "JsonB2C", "b2c");
-
-            //backgroundWorkerContact.ReportProgress(100);
-
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            backgroundWorker_Modelo_Soportes.RunWorkerAsync();
-        }
-
-        private async void backgroundWorker_Modelo_Soportes_DoWork(object sender, DoWorkEventArgs e)
+        private async void backgroundWorkerProcesarDatos_DoWork(object sender, DoWorkEventArgs e)
         {
             IEnumerable<EmailDocuments> documents = await serviceDocuments.GetAllEmailFolders();
 
@@ -342,23 +178,6 @@ namespace PowerAppIntegration
                 }
 
                 DataRow? validContact = MigrationHelperService.SetValidContactToMigrate(prospectiveContactEmailAndNit);
-
-
-                // Valida si encuentra un registro de empresa para la empress relacionada
-                IEnumerable<DataRow> queryCompany = from DataRow line in GeneralData.DT_COMPANY.Rows
-                                                       where line.GetValueData(Company.CompanyIdentification.GetDescription()) ==
-                                                       validContact.GetValueData(Contact.CompanyIdentification.GetDescription())
-                                                       select line;
-
-
-                if (queryCompany is null || !queryCompany.Any())
-                {
-                    string messageLog = $"Usuario con correo: {document.Email} no es posible encontarle empresa con nit {validContact.GetValueData(Contact.CompanyIdentification.GetDescription())}";
-
-                    await ReportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
-                    continue;
-                }
 
                 string[] queryContact = validContact[Migration.Domain.Domain.Enums.Contact.Email.GetDescription()].ToString()!.Split("@");
 
@@ -428,18 +247,72 @@ namespace PowerAppIntegration
                 MigrationHelperService.AddItemGeneralList(b2CCreateUser, migrationPack, migrateUsers);
             }
 
-            foreach (List<B2CDataUser> b2cUsers in migrationPack.userB2C)
-            {
-                int index = migrationPack.userB2C.IndexOf(b2cUsers);
-                CreateJsonResponse<B2CCreateUser>.CrateJSONResponse(b2cUsers, $"Paquete {index}", $"b2cPlanB");
-            }
-
             foreach (List<RegistryMigrationDto> userPack in migrationPack.userPack)
             {
                 int index = migrationPack.userPack.IndexOf(userPack);
                 CreateJsonResponse<RegistryMigrationDto>.CrateJSONResponse(userPack, $"Paquete {index}", $"UserRegistryPlanB");
             }
         }
+        private void backgroundWorkerContact_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            ProcesarProgressBar.Value = e.ProgressPercentage;
+        }
+
+        #endregion
+
+        #region LIMPIAR CONTACTOS
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+            if (backgroundWorkerLimpiarDatos.IsBusy)
+            {
+                return;
+            }
+
+            backgroundWorkerLimpiarDatos.RunWorkerAsync();
+        }
+
+        private void backgroundWorkerLimpiarDatos_DoWork(object sender, DoWorkEventArgs e)
+        {
+            GeneralData.CONTACT_LIST = new List<DataRow>();
+            foreach (DataRow contact in GeneralData.DT_CONTACT.Rows)
+            {
+                CleanDataService.CleanDataRowContact(contact);
+
+                int currentIndex = GeneralData.DT_CONTACT.Rows.IndexOf(contact);
+                int progressPercentage = (int)(((double)currentIndex / GeneralData.DT_CONTACT.Rows.Count) * 100);
+
+                GeneralData.CONTACT_LIST.Add(contact);
+
+                backgroundWorkerLimpiarDatos.ReportProgress(progressPercentage);
+            }
+
+            backgroundWorkerLimpiarDatos.ReportProgress(100);
+        }
+
+        private void backgroundWorker_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        {
+            LimpiarProgressBar.Value = e.ProgressPercentage;
+        }
+        #endregion
+
+        #region ARMAR TABLA
+        private void button3_Click(object sender, EventArgs e)
+        {
+            GeneralData.DT_CONTACT = new();
+
+            IEnumerable<string> contactColumns = EnumHelper.GetListOfDescription<Contact>();
+
+            foreach (string contactColumn in contactColumns)
+            {
+                GeneralData.DT_CONTACT.Columns.Add(contactColumn, typeof(string));
+            }
+
+            dataGridView1.DataSource = GeneralData.DT_CONTACT;
+        }
+        #endregion
+
 
         public async Task ReportLogAsync(string mensaje, Color color)
         {
@@ -454,24 +327,5 @@ namespace PowerAppIntegration
                 }));
             });
         }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            GeneralData.CONTACT_LIST = new List<DataRow>();
-            foreach (DataRow contact in GeneralData.DT_CONTACT.Rows)
-            {
-                CleanDataService.CleanDataRowContact(contact);
-
-                int currentIndex = GeneralData.DT_CONTACT.Rows.IndexOf(contact);
-                int progressPercentage = (int)(((double)currentIndex / GeneralData.DT_CONTACT.Rows.Count) * 100);
-
-                GeneralData.CONTACT_LIST.Add(contact);
-
-                backgroundWorkerContact.ReportProgress(progressPercentage);
-            }
-
-            backgroundWorkerContact.ReportProgress(100);
-        }
-
     }
 }

@@ -1,6 +1,6 @@
-﻿using static Migration.Domain.Domain.DTOs.MigrationPackDto;
+﻿using static Migration.Domain.Domain.DTOs.MigracionUsuarios.MigrationPackDto;
 
-namespace Migration.Domain.Domain.DTOs
+namespace Migration.Domain.Domain.DTOs.MigracionUsuarios
 {
     public class MigrationPack
     {

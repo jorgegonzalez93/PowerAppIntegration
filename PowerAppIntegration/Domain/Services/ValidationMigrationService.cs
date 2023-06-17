@@ -1,4 +1,4 @@
-﻿using Migration.Domain.Domain.DTOs;
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using Migration.Domain.Domain.Enums;
 using Migration.Domain.Domain.Helpers;
 using Migration.Domain.Infrastructure.Logs;
@@ -37,23 +37,6 @@ namespace Migration.Domain.Domain.Services
             return new()
             {
                 File = "b2c",
-                ValidateFilelds = fields
-            };
-        }
-
-        public ValidationMigrationService CompanyRequired()
-        {
-            List<Fileld> fields = new()
-            {
-                new Fileld {Required = Company.CompanyIdentification.GetDescription()},
-                new Fileld {Required = Company.CountryName.GetDescription()},
-                new Fileld {Required = Company.CompanyTelephone.GetDescription()},
-                new Fileld {Required = Company.CompanyAddress.GetDescription()}
-            };
-
-            return new()
-            {
-                File = "Company",
                 ValidateFilelds = fields
             };
         }

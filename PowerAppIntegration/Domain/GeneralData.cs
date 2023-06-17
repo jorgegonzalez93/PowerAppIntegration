@@ -1,5 +1,4 @@
-﻿using Migration.Domain.Domain.DTOs;
-
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using System.Data;
 using System.Text.RegularExpressions;
 
@@ -39,10 +38,11 @@ namespace Migration.Domain.Domain
         public const string TYPE_PASAPORTE = "Pasaporte";
         public const string NIT = "NIT";
 
-        public const string DOCUMENTS_PATH = @"C:\Users\jorge.gonzalez\Desktop\SoportesReales\Entrega15Junio";
+        public const string DOCUMENTS_PATH = @"C:\Users\jorge.gonzalez\Desktop\SoportesReales\Migracion Actividad";
         public const string LABORATOTY_PATH = @"C:\Users\jorge.gonzalez\Desktop\SoportesReales\Laboratorio";
         //public const string DOCUMENTS_PATH = "C:\\Users\\jorge.gonzalez\\Desktop\\SoportesReales";
         public const string DUMMY_PDF = "C:\\Users\\jorge.gonzalez\\Desktop\\DocumentosMigracion\\Dummy_PDF";
+        public const string PDF_EN_BLANCO = @"C:\Users\jorge.gonzalez\source\repos\Aplicacion para organizar datos MVM\Insumos\blank.pdf";
 
         public const string CERTIFICADO_EXISTENCIA = "Existencia";
         public const string RUT = "RUT";
@@ -55,15 +55,18 @@ namespace Migration.Domain.Domain
             CERTIFICADO_EXISTENCIA
         };
 
-        public static readonly List<string> REQUIRED_DOCUMENTS_LEGAL_ENTITY_OTHER = new() {
-            DOCUMENTOIDENTIDAD
+        public static readonly List<string> REQUIRED_DOCUMENT_APODERA = new() {
+            "Autorizacion",
+            "FormatoESP",
+            "Poder",
+            "Opcionales"
         };
 
 
-        public static readonly List<string> REQUIRED_DOCUMENTS_NATURAL = new() {
-            RUT,
-            DOCUMENTOIDENTIDAD,
-            SARLAFT
+        public static readonly List<string> REQUIRED_DOCUMENT_NO_APODERA = new() {
+            "Autorizacion",
+            "FormatoESP",
+            "Opcionales"
         };
 
         public static readonly List<string> INVALID_CHARACTER_USER_NICK_NAME = new()

@@ -1,6 +1,6 @@
 ﻿using Migration.Domain.Domain.Enums;
 
-namespace Migration.Domain.Domain.DTOs
+namespace Migration.Domain.Domain.DTOs.MigracionUsuarios
 {
     public class UserFilter
     {

@@ -1,4 +1,4 @@
-﻿using Migration.Domain.Domain.DTOs;
+﻿using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using System.Data;
 
 namespace Migration.Domain.Domain.Services
@@ -36,15 +36,7 @@ namespace Migration.Domain.Domain.Services
             {
                 requiredDocuments = GeneralData.REQUIRED_DOCUMENTS_LEGAL_ENTITY_REPRESENTATIVE;
             }
-            else
-            {
-                requiredDocuments = GeneralData.REQUIRED_DOCUMENTS_NATURAL;
-            }
 
-            if (!requiredDocuments.Any(required => required.Contains(document)))
-            {
-                return string.Empty;
-            }
 
             IEnumerable<string> requiredDocumentsByType = from string folder in folderDocuments
                                                           where folder.Contains(document, StringComparison.InvariantCultureIgnoreCase)
