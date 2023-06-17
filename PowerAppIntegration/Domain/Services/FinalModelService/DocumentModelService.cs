@@ -47,10 +47,25 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                     foreach (string nitFolder in NitFoldersParent)
                     {
                         string nit = Path.GetFileName(nitFolder);
+                        string emailName = string.Empty;
+
 
                         DataRow? queryCompany = GeneralData.CONTACT_LIST
                                .FirstOrDefault(user => user.GetValueData(Contact.CompanyIdentification.GetDescription()) == nit);
 
+
+                        List<string> Contacts = new List<string>();
+
+                        IEnumerable<DataRow> userByNit = GeneralData.CONTACT_LIST
+                               .Where(user => user.GetValueData(Contact.CompanyIdentification.GetDescription()) == nit);
+
+
+                        if (userByNit.Any())
+                        {
+                            Contacts = userByNit.Select(user => user.GetValueData(Contact.JobTitle.GetDescription())).ToList();
+
+                            Contacts = Contacts.Where(user => user.Contains("contact", StringComparison.InvariantCultureIgnoreCase)).ToList();
+                        }
 
                         if (queryCompany is null)
                         {
@@ -118,10 +133,9 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                         if (apoderadoValidacion.Contains("NoApoderado"))
                         {
-                            List<string> documentFolderParent = Directory.GetDirectories(apoderadoFolderParent).ToList();
+                            List<string> FolderParentNoApoderado = Directory.GetDirectories(apoderadoFolderParent).ToList();
 
-
-                            foreach (string folderDocument in documentFolderParent)
+                            foreach (string folderDocument in FolderParentNoApoderado)
                             {
                                 string file = Path.GetFileName(folderDocument);
 
@@ -155,6 +169,119 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                         }
                         else
                         {
+                            List<string> FolderParentApoderado = Directory.GetDirectories(apoderadoFolderParent).ToList();
+
+
+                            if (FolderParentApoderado.Count > 1)
+                            {
+                                string messageLog = $"Existe mas de una carpeta con el correo de apoderado";
+
+                                await reportLogAsync(messageLog, Color.Red);
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                continue;
+                            }
+
+                            if (!FolderParentApoderado.Any())
+                            {
+                                string messageLog = $"No existen carpetas para definir el apoderado";
+
+                                await reportLogAsync(messageLog, Color.Red);
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                continue;
+                            }
+
+                            string? folderApoderado = FolderParentApoderado.FirstOrDefault();
+
+                            if (string.IsNullOrEmpty(folderApoderado))
+                            {
+                                string messageLog = $"Error al obtener el correo del apoderado";
+
+                                await reportLogAsync(messageLog, Color.Red);
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                continue;
+                            }
+
+
+                            emailName = Path.GetFileName(folderApoderado);
+
+                            emailName = emailName.Trim().ToLower();
+
+                            IEnumerable<DataRow> queryValidateContact = GeneralData.CONTACT_LIST
+                                .Where(user => user.GetValueData(Contact.Email.GetDescription()).ToLower() == emailName);
+
+                            if (!queryValidateContact.Any())
+                            {
+                                string messageLog = $"No se encuentran datos del contacto {emailName} en el excel";
+
+                                await reportLogAsync(messageLog, Color.Red);
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                continue;
+                            }
+
+                            queryValidateContact = queryValidateContact
+                                .Where(user => user.GetValueData(Contact.CompanyIdentification.GetDescription()).ToLower() == nit);
+
+
+                            if (!queryValidateContact.Any())
+                            {
+                                string messageLog = $"No se encuentran datos del contacto {emailName} para el nit {nit} en el excel";
+
+                                await reportLogAsync(messageLog, Color.Red);
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                continue;
+                            }
+
+
+                            DataRow? userValid = queryValidateContact.FirstOrDefault();
+
+
+                            if (userValid is null)
+                            {
+                                string messageLog = $"Error al tomar los datos del contacto  {emailName} para el nit {nit}";
+
+                                await reportLogAsync(messageLog, Color.Red);
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                continue;
+                            }
+
+                            string emailFolder = FolderParentApoderado.FirstOrDefault()!;
+
+                            List<string> foldersByEmail = Directory.GetDirectories(emailFolder).ToList();
+
+                            if (!foldersByEmail.Any())
+                            {
+                                string messageLog = $"Carpeta sin soportes para el correo {emailName}";
+
+                                await reportLogAsync(messageLog, Color.Red);
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                continue;
+                            }
+
+
+                            foreach (string folderDocument in foldersByEmail)
+                            {
+                                string file = Path.GetFileName(folderDocument);
+
+                                List<string> documentsInFolderApoderado = Directory.GetFiles(folderDocument).ToList();
+
+                                if (documentsInFolderApoderado.Any() &&
+                                    !documentsInFolderApoderado.Any(pdf => pdf != string.Empty! && Path.GetExtension(pdf).ToLowerInvariant() == ".pdf"))
+                                {
+                                    string messageLog = $"Existen archivos en un formato diferente";
+
+                                    await reportLogAsync(messageLog, Color.Red);
+                                    ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                    continue;
+                                }
+
+                                if (file.Contains("Autoriza"))
+                                {
+                                    SetAutorizacionDocument(requisitosLegalesDocuments, foldersByEmail);
+                                }
+
+
+                            }
+
 
                         }
 
@@ -164,6 +291,8 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                         requisitosLegalesDocuments.Esp = EspCompany.Equals("1");
                         requisitosLegalesDocuments.DocumentosOpcionales = docsOpcionales;
                         requisitosLegalesDocuments.Estado = state;
+                        requisitosLegalesDocuments.CorreosContactos = Contacts;
+                        requisitosLegalesDocuments.Correo = emailName;
                     }
 
 
