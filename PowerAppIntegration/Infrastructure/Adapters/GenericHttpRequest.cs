@@ -27,6 +27,19 @@ namespace Migration.Domain.Infrastructure.Adapters
 
         }
 
+        public async Task<T> DynamicFromPostDataAsync<T>(string path, object content)
+        {
+            using (var restClient = new HttpClient())
+            {
+                return await GetRetryPolicy(MethodBase.GetCurrentMethod().Name).ExecuteAsync(async () =>
+                {
+                    var response = await restClient.PostAsync(path, ObjectAsStringContent(content)).ConfigureAwait(false);
+                    return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+                }).ConfigureAwait(false);
+            }
+
+        }
+
         public async Task<T> GetDataAsync<T>(string path, string ocpSubscriptionKey) where T : class, new()
         {
             using (var restClient = new HttpClient())
