@@ -20,7 +20,7 @@ namespace Migration.Domain.Domain.Services
             B2CCreateUser = new();
         }
 
-        public async Task<RegistryDto?> MigrateContactAsync(DataRow contact)
+        public RegistryDto? MigrateContactAsync(DataRow contact)
         {
             string fileName = "Employee";
 

@@ -11,20 +11,14 @@ namespace Migration.Domain.Domain.Services.FinalModelService
     {
         public static RegistryMigrationDto? MigrateContacPlanBAsync(DataRow validContact, EmailDocuments documents)
         {
-            string status = validContact[Enums.Contact.Status.GetDescription()].ToString()!;
-
-
-            string approbedDate = validContact[Enums.Contact.ApprobedDate.GetDescription()].ToString()!;
-
             RegistryCompanyDto? existingCompany =
                 GeneralData.REGISTRY_COMPANYS
                             .FirstOrDefault<RegistryCompanyDto>(company => company.CompanyIdentification.Contains(validContact[Enums.Contact.CompanyIdentification.GetDescription()].ToString()!));
 
-            if (existingCompany is not null)
-            {
-                status = existingCompany.Status;
-                approbedDate = existingCompany.CreateDate;
-            }
+
+            string status = existingCompany.Status;
+            string approbedDate = existingCompany.CreateDate;
+
 
             ClarificationRegistryDto? clarification = null;
             if (status.Contains(StatusRegisterEnum.Reject.GetDescription(), StringComparison.InvariantCultureIgnoreCase))

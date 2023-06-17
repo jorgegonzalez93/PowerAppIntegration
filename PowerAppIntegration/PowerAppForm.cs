@@ -195,7 +195,7 @@ namespace PowerAppIntegration
                 {
                     CompanyIdentification = item.GetValueData(Company.CompanyIdentification.GetDescription()),
                     CreateDate = item.GetValueData(Company.DateCreate.GetDescription())
-                }) ;
+                });
             }
             var json = JsonConvert.SerializeObject(companylist);
 
@@ -212,12 +212,12 @@ namespace PowerAppIntegration
             saveCompany.Enabled = true;
         }
 
-        private async void backgroundWorkerContact_DoWork(object sender, DoWorkEventArgs e)
+        private void backgroundWorkerContact_DoWork(object sender, DoWorkEventArgs e)
         {
             List<RegistryDto> registryList = new();
             foreach (DataRow contact in GeneralData.DT_CONTACT.Rows)
             {
-                RegistryDto? registry = await MigrationEmployeeService.MigrateContactAsync(contact);
+                RegistryDto? registry = MigrationEmployeeService.MigrateContactAsync(contact);
 
                 int currentIndex = GeneralData.DT_CONTACT.Rows.IndexOf(contact);
                 int progressPercentage = (int)(((double)currentIndex / GeneralData.DT_CONTACT.Rows.Count) * 100);
@@ -312,9 +312,9 @@ namespace PowerAppIntegration
                     ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
                     continue;
                 }
-                
+
                 // Valida si el usuario tiene algun registro con nit               
-                IEnumerable < DataRow > prospectiveContactEmailAndNit = userQueryByEmail
+                IEnumerable<DataRow> prospectiveContactEmailAndNit = userQueryByEmail
                     .Where(query => query[Migration.Domain.Domain.Enums.Contact.CompanyIdentification.GetDescription()].ToString()! != string.Empty);
 
                 if (prospectiveContactEmailAndNit is null || !prospectiveContactEmailAndNit.Any())
@@ -328,7 +328,7 @@ namespace PowerAppIntegration
 
                 // Valida si el usuario existe para mas de una empresa
                 IEnumerable<string> queryMultipleCompanies = prospectiveContactEmailAndNit
-                    .Select(query => query[Migration.Domain.Domain.Enums.Contact.CompanyIdentification.GetDescription()].ToString()!);
+                    .Select(query => query[Contact.CompanyIdentification.GetDescription()].ToString()!);
 
                 List<string> queryDistinctCompany = queryMultipleCompanies.Distinct().ToList();
 
@@ -342,6 +342,23 @@ namespace PowerAppIntegration
                 }
 
                 DataRow? validContact = MigrationHelperService.SetValidContactToMigrate(prospectiveContactEmailAndNit);
+
+
+                // Valida si encuentra un registro de empresa para la empress relacionada
+                IEnumerable<DataRow> queryCompany = from DataRow line in GeneralData.DT_COMPANY.Rows
+                                                       where line.GetValueData(Company.CompanyIdentification.GetDescription()) ==
+                                                       validContact.GetValueData(Contact.CompanyIdentification.GetDescription())
+                                                       select line;
+
+
+                if (queryCompany is null || !queryCompany.Any())
+                {
+                    string messageLog = $"Usuario con correo: {document.Email} no es posible encontarle empresa con nit {validContact.GetValueData(Contact.CompanyIdentification.GetDescription())}";
+
+                    await ReportLogAsync(messageLog, Color.Red);
+                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
+                    continue;
+                }
 
                 string[] queryContact = validContact[Migration.Domain.Domain.Enums.Contact.Email.GetDescription()].ToString()!.Split("@");
 

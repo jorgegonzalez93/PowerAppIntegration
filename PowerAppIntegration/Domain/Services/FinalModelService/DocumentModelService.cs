@@ -1,7 +1,6 @@
 ﻿using Migration.Domain.Domain.Enums;
 using Migration.Domain.Domain.Helpers;
 using Migration.Domain.Infrastructure.Logs;
-using System.Linq;
 using static PowerAppIntegration.PowerAppForm;
 
 namespace Migration.Domain.Domain.Services.FinalModelService
@@ -17,7 +16,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
         public async Task<IEnumerable<EmailDocuments>> GetAllEmailFolders()
         {
-            var stringPath = GeneralData.DOCUMENTS_PATH;
+            string stringPath = GeneralData.DOCUMENTS_PATH;
 
             stringPath = "C:\\Users\\jorge.gonzalez\\Desktop\\SoportesReales\\Laboratorio";
             var emailFolders = Directory.GetDirectories(stringPath);
@@ -26,16 +25,16 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
             foreach (string emailFolder in emailFolders)
             {
-                var userEmail = Path.GetFileName(emailFolder);
+                string userEmail = Path.GetFileName(emailFolder);
 
-                var personTypeFolderName = string.Empty;
-                var userRolFolderName = string.Empty;
+                string personTypeFolderName = string.Empty;
+                string userRolFolderName = string.Empty;
 
                 List<string> personTypeFolder = Directory.GetDirectories(emailFolder).ToList();
 
                 if (!personTypeFolder.Any())
                 {
-                    var messageLog = $"Usuario con correo: {userEmail} sin soportes";
+                    string messageLog = $"Usuario con correo: {userEmail} sin soportes";
 
                     await reportLogAsync(messageLog, Color.Red);
                     ApplicationLogService.GenerateLogByMessage(userEmail, messageLog, "email");
@@ -49,7 +48,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                 if (!folderFilesUserRol.Any())
                 {
-                    var messageLog = $"Usuario con correo: {userEmail} sin soportes";
+                    string messageLog = $"Usuario con correo: {userEmail} sin soportes";
 
                     await reportLogAsync(messageLog, Color.Red);
                     ApplicationLogService.GenerateLogByMessage(userEmail, messageLog, "email");
@@ -60,9 +59,16 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
 
                 List<string> folderFilesDocuments = Directory.GetDirectories(folderFilesUserRol.FirstOrDefault()!).ToList();
+
+                if (personTypeFolderName == "Otro")
+                {
+                    string queryData = folderFilesUserRol.FirstOrDefault()!;
+                    folderFilesDocuments.Add(queryData);
+                }
+
                 if (!folderFilesDocuments.Any())
                 {
-                    var messageLog = $"Usuario con correo: {userEmail} sin soportes dentro de la carpeta de rol";
+                    string messageLog = $"Usuario con correo: {userEmail} sin soportes dentro de la carpeta de rol";
 
                     await reportLogAsync(messageLog, Color.Red);
                     ApplicationLogService.GenerateLogByMessage(userEmail, messageLog, "email");
@@ -76,7 +82,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
 
                 List<Document> documentsByEmail = new();
-                var folderName = string.Empty;
+                string folderName = string.Empty;
                 foreach (string folderfile in folderFilesDocuments)
                 {
                     var filesByFolder = Directory.GetFiles(folderfile);

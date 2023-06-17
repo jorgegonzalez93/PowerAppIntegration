@@ -39,7 +39,7 @@ namespace Migration.Domain.Domain
         public const string TYPE_PASAPORTE = "Pasaporte";
         public const string NIT = "NIT";
 
-        public const string DOCUMENTS_PATH = @"C:\Users\jorge.gonzalez\Desktop\SoportesReales\Entrega31Mayo";
+        public const string DOCUMENTS_PATH = @"C:\Users\jorge.gonzalez\Desktop\SoportesReales\Entrega15Junio";
         public const string LABORATOTY_PATH = @"C:\Users\jorge.gonzalez\Desktop\SoportesReales\Laboratorio";
         //public const string DOCUMENTS_PATH = "C:\\Users\\jorge.gonzalez\\Desktop\\SoportesReales";
         public const string DUMMY_PDF = "C:\\Users\\jorge.gonzalez\\Desktop\\DocumentosMigracion\\Dummy_PDF";

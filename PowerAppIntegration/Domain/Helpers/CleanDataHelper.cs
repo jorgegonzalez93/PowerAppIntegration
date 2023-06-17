@@ -60,8 +60,15 @@ namespace Migration.Domain.Domain.Helpers
 
         public static string CleanUserNickName(string email, string userNickName)
         {
+            if (string.IsNullOrEmpty(email))
+            {
+                return string.Empty;
+            }
+
             if (string.IsNullOrEmpty(userNickName) || HasInvalidCharacter(userNickName))
             {
+               
+
                 var defaultUserName = DefaultUserNameFromEmail(email);
 
                 email = email.Replace("_", "");
