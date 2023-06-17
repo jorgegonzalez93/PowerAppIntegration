@@ -1,6 +1,7 @@
 ﻿using Migration.Domain.Domain.DTOs.MigracionActividad;
 using Migration.Domain.Domain.Enums;
 using Migration.Domain.Domain.Helpers;
+using Migration.Domain.Infrastructure.Adapters;
 using Migration.Domain.Infrastructure.Logs;
 using System.Data;
 using System.Text.RegularExpressions;
@@ -11,10 +12,12 @@ namespace Migration.Domain.Domain.Services.FinalModelService
     public class DocumentModelService
     {
         private readonly ReportLogAsyncDelegate reportLogAsync;
+        private readonly MechanismService MechanismService;
 
         public DocumentModelService(ReportLogAsyncDelegate reportLogAsync)
         {
             this.reportLogAsync = reportLogAsync;
+            this.MechanismService = new();
         }
 
         public async Task<IEnumerable<EmailDocuments>> GetAllEmailFolders()
@@ -31,6 +34,23 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                 try
                 {
                     string state = Path.GetFileName(stateFolderParent);
+
+                    if (StatusRegisterEnum.Approbed.GetDescription().Contains(state,StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        state = StatusRegisterEnum.Approbed.GetDescription();
+                    }
+                    else if (StatusRegisterEnum.Pending.GetDescription().Contains(state, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        state = StatusRegisterEnum.Pending.GetDescription();
+                    }
+                    else
+                    {
+                        string messageLog = $"El estado esta mal!";
+
+                        await reportLogAsync(messageLog, Color.Red);
+                        ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "LogRequisitosLegales");
+                        continue;
+                    }
 
                     List<string> NitFoldersParent = Directory.GetDirectories(stateFolderParent).ToList();
 
@@ -170,10 +190,11 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 if (file.Contains("Opcion", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     SetOptionalDocument(docsOpcionales, documentsInFolderNoApoderado);
-
                                 }
-
                             }
+
+                            SetPowerDocument(requisitosLegalesDocuments, string.Empty);
+                            SetCertificadoDoument(requisitosLegalesDocuments, string.Empty);
 
                         }
                         else
@@ -306,7 +327,8 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                         continue;
                                     }
 
-                                    SetPoweDocument(requisitosLegalesDocuments, documentPath);
+                                    SetPowerDocument(requisitosLegalesDocuments, documentPath);
+                                    SetCertificadoDoument(requisitosLegalesDocuments, string.Empty);
 
                                 }
                             }
@@ -322,7 +344,79 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                         requisitosLegalesDocuments.CorreosContactos = Contacts;
                         requisitosLegalesDocuments.Correo = emailName;
 
+
                         activityDocuments.Add(requisitosLegalesDocuments);
+
+                        List<ParticipationFormDataDto> participationForms = new()
+                        {
+                            new ParticipationFormDataDto
+                            {
+                                Name = "Rol del registro",
+                                ParticipationFormFieldsData = new List<ParticipationFormFieldDataDto>
+                                {
+                                    new ParticipationFormFieldDataDto
+                                    {
+                                        Type = "radio",
+                                        Value = "true",
+                                        Field = "constitutedCompany"
+                                    },
+                                    new ParticipationFormFieldDataDto
+                                    {
+                                        Type = "radio",
+                                        Value = requisitosLegalesDocuments.Esp.ToString(),
+                                        Field = "isESP"
+                                    }
+                                }
+                            },
+                            new ParticipationFormDataDto
+                            {
+                                Name = "Asignación del apoderado",
+                                ParticipationFormFieldsData = new List<ParticipationFormFieldDataDto>
+                                {
+                                    new ParticipationFormFieldDataDto
+                                    {
+                                        Type = "checkbox",
+                                        Value = requisitosLegalesDocuments.Apodera.ToString(),
+                                        Field = "hasRepresentative"
+                                    },
+                                    new ParticipationFormFieldDataDto
+                                    {
+                                        Type = "select",
+                                        Value = "e8111991-019d-48fd-adc2-6905ca0d9f8f",
+                                        Field = "selectedRepresentative"
+                                    }
+                                }
+                            }
+                        };
+
+                        List<ParticipationDataInputDto> participaciones = new();
+                        List<ParticipationDocumentDataDto> participationDocumentDatas = new()
+                        {
+                            requisitosLegalesDocuments.Poder,
+                            requisitosLegalesDocuments.ConstitucionFuturaESP,
+                            requisitosLegalesDocuments.AutorizacionCuantia,
+                            requisitosLegalesDocuments.CertificadoExistencia
+
+                        };
+
+                        participationDocumentDatas.AddRange(requisitosLegalesDocuments.DocumentosOpcionales);
+
+                        participaciones.Add(new()
+                        {
+                            NIT = requisitosLegalesDocuments.NIT,
+                            UserId = Guid.Empty,
+                            AgentId = Guid.Empty,
+                            AdminId = new Guid("c7b06ed9-8545-4f64-ad7c-6b73816db390"),
+                            AdminName = "Edgar Cadavid",
+                            CorreoApoderado = requisitosLegalesDocuments.Correo,
+                            MechanismActivityId = new Guid("A32ACCEA-10C2-497C-1789-08DB69CC9FED"),
+                            State = requisitosLegalesDocuments.Estado,
+                            ParticipationFormData = participationForms,
+                            ParticipationDocumentData = participationDocumentDatas
+                        });
+
+                        await MechanismService.SaveDynamicFormAsync(participaciones.FirstOrDefault()!);
+
                     }
 
 
@@ -406,7 +500,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
             };
         }
 
-        private static void SetPoweDocument(RequisitosLegalesDocuments requisitosLegalesDocuments, string pathFilePoder)
+        private static void SetPowerDocument(RequisitosLegalesDocuments requisitosLegalesDocuments, string pathFilePoder)
         {
             string base64Path = string.Empty;
             if (!string.IsNullOrEmpty(pathFilePoder))
@@ -420,6 +514,23 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                 Value = base64Path,
                 Label = "poder",
                 Field = "signedAuthorization"
+            };
+        }
+
+        private static void SetCertificadoDoument(RequisitosLegalesDocuments requisitosLegalesDocuments, string pathFile)
+        {
+            string base64Path = string.Empty;
+            if (!string.IsNullOrEmpty(pathFile))
+            {
+                base64Path = DocumentService.ConvertPDFtoBase64(pathFile);
+            }
+
+            requisitosLegalesDocuments.CertificadoExistencia = new()
+            {
+                Type = "file",
+                Value = base64Path,
+                Label = "Certificado de existencia y representación legal",
+                Field = "representationAndExistenceCertification"
             };
         }
 

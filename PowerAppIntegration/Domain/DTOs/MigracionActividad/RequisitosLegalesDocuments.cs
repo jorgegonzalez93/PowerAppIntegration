@@ -9,6 +9,7 @@
 
         public string Correo { get; set; } //Quien se va a apoderar
         public ParticipationDocumentDataDto Poder { get; set; }
+        public ParticipationDocumentDataDto CertificadoExistencia { get; set; }
         public ParticipationDocumentDataDto AutorizacionCuantia { get; set; }
         public ParticipationDocumentDataDto ConstitucionFuturaESP { get; set; } // Pdf en blanco
 

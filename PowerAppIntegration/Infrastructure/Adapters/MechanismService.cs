@@ -18,8 +18,6 @@ public class MechanismService
 
     public async Task SaveDynamicFormAsync(ParticipationDataInputDto participationDataInput)
     {
-
-
         Guid participationId = await GenericHttpRequest.DynamicFromPostDataAsync<Guid>(PATH_DYNAMIC_FORM, new CreateDynamicFormCommand(participationDataInput));
         ApplicationLogService.GenerateLogByMessage(nameof(participationId), participationId.ToString(), "PARTICIPATIONIDS");
     }
