@@ -24,7 +24,7 @@ namespace Migration.Domain.Infrastructure.Logs
         {
 
             string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string logFolderPath = Path.Combine(desktopPath, "MigrationLogs", fileError);
+            string logFolderPath = Path.Combine(desktopPath, "MigrationLogsRequisitosLegales", fileError);
             Directory.CreateDirectory(logFolderPath);
 
             string logFilePath = Path.Combine(logFolderPath, $"{fileError}_{DateTime.Now:hh}.csv");

@@ -1,13 +1,9 @@
 ﻿using Migration.Domain.Domain;
-using Migration.Domain.Domain.DTOs.MigracionUsuarios;
 using Migration.Domain.Domain.Enums;
 using Migration.Domain.Domain.Helpers;
 using Migration.Domain.Domain.Services.FinalModelService;
-using Migration.Domain.Infrastructure.Logs;
 using System.ComponentModel;
 using System.Data;
-using static Migration.Domain.Domain.DTOs.MigracionUsuarios.MigrationPackDto;
-using static Migration.Domain.Domain.Services.FinalModelService.DocumentModelService;
 
 namespace PowerAppIntegration
 {
@@ -112,146 +108,7 @@ namespace PowerAppIntegration
 
         private async void backgroundWorkerProcesarDatos_DoWork(object sender, DoWorkEventArgs e)
         {
-            IEnumerable<EmailDocuments> documents = await serviceDocuments.GetAllEmailFolders();
-
-            if (GeneralData.CONTACT_LIST is null || GeneralData.CONTACT_LIST.Count <= 0)
-            {
-                string messageLog = "Sin contactos cargados";
-
-                await ReportLogAsync(messageLog, Color.Red);
-                ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "email");
-                return;
-            }
-
-            MigrationPack migrationPack = new()
-            {
-                userPack = new List<List<RegistryMigrationDto>>(),
-                userB2C = new List<List<B2CDataUser>>(),
-            };
-
-            List<RegistryMigrationDto> migrateUsers = new();
-            List<B2CDataUser> b2CCreateUser = new();
-
-            documents = documents.OrderBy(order => order.Email);
-
-            foreach (EmailDocuments document in documents)
-            {
-                IEnumerable<DataRow>? userQueryByEmail = GeneralData.CONTACT_LIST
-                    .Where(contact => contact[Migration.Domain.Domain.Enums.Contact.Email.GetDescription()].ToString()!.Contains(document.Email, StringComparison.InvariantCultureIgnoreCase));
-
-                // Valida si fue posible encontrar el usuario en la lista
-                if (userQueryByEmail is null || !userQueryByEmail.Any())
-                {
-                    string messageLog = $"Usuario con correo: {document.Email} sin datos encontrados";
-
-                    await ReportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
-                    continue;
-                }
-
-                // Valida si el usuario tiene algun registro con nit               
-                IEnumerable<DataRow> prospectiveContactEmailAndNit = userQueryByEmail
-                    .Where(query => query[Migration.Domain.Domain.Enums.Contact.CompanyIdentification.GetDescription()].ToString()! != string.Empty);
-
-                if (prospectiveContactEmailAndNit is null || !prospectiveContactEmailAndNit.Any())
-                {
-                    string messageLog = $"Usuario con correo: {document.Email} no tiene relacion de empresa";
-
-                    await ReportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
-                    continue;
-                }
-
-                // Valida si el usuario existe para mas de una empresa
-                IEnumerable<string> queryMultipleCompanies = prospectiveContactEmailAndNit
-                    .Select(query => query[Contact.CompanyIdentification.GetDescription()].ToString()!);
-
-                List<string> queryDistinctCompany = queryMultipleCompanies.Distinct().ToList();
-
-                if (queryDistinctCompany.Count > 1)
-                {
-                    string messageLog = $"Usuario con correo: {document.Email} tiene varias empresas {string.Join("-", queryDistinctCompany)}";
-
-                    await ReportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
-                    continue;
-                }
-
-                DataRow? validContact = MigrationHelperService.SetValidContactToMigrate(prospectiveContactEmailAndNit);
-
-                string[] queryContact = validContact[Migration.Domain.Domain.Enums.Contact.Email.GetDescription()].ToString()!.Split("@");
-
-                if (queryContact.Count() > 2)
-                {
-                    string messageLog = $"Usuario con correo: {document.Email} tiene varias correos en el mismo campo {validContact[Migration.Domain.Domain.Enums.Contact.Email.GetDescription()].ToString()!}";
-
-                    await ReportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
-                    continue;
-                }
-
-                // Define el rol segun la carpeta
-                MigrationHelperService.SetPersonTypeByFolder(document, validContact);
-
-                // Define el tipo de persona segun la carpeta
-                MigrationHelperService.SetUserRolByFolder(document, validContact);
-
-                List<string> requiredDocuments = MigrationHelperService.SetRequiredDocumentByUser(validContact);
-
-                List<string> documentsPending = MigrationHelperService.ValidateIncompleteDocuments(document, requiredDocuments);
-
-                if (documentsPending.Any())
-                {
-                    string messageLog = $"Usuario con correo: {document.Email} no se puede crear no tiene los documentos completos falta: {string.Join("-", documentsPending)}";
-
-                    await ReportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
-                    continue;
-                }
-
-                // Usuario posible
-
-                RegistryMigrationDto? migrateObject = RegistryMigrationCreateService.MigrateContacPlanBAsync(validContact, document);
-
-                B2CDataUser? _B2CCreateUser = CreateB2CCreateService.CreateB2CObject(validContact);
-
-                if (_B2CCreateUser is null)
-                {
-                    string messageLog = $"Usuario con correo: {document.Email} no se puede generar script para B2C";
-
-                    await ReportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage(document.Email, messageLog, "email");
-                    continue;
-                }
-
-                string messageFinalLog = $"Usuario generado de manera correcta";
-
-                await ReportLogAsync(messageFinalLog, Color.Purple);
-                ApplicationLogService.GenerateLogByMessage(document.Email, messageFinalLog, "email");
-
-                b2CCreateUser.Add(_B2CCreateUser);
-                migrateUsers.Add(migrateObject!);
-
-                if (migrateUsers.Count == GeneralData.MAX_USER_BY_PACKAGE)
-                {
-                    MigrationHelperService.AddItemGeneralList(b2CCreateUser, migrationPack, migrateUsers);
-
-                    migrateUsers = new();
-                    b2CCreateUser = new();
-                }
-
-            }
-
-            if (migrateUsers.Any())
-            {
-                MigrationHelperService.AddItemGeneralList(b2CCreateUser, migrationPack, migrateUsers);
-            }
-
-            foreach (List<RegistryMigrationDto> userPack in migrationPack.userPack)
-            {
-                int index = migrationPack.userPack.IndexOf(userPack);
-                CreateJsonResponse<RegistryMigrationDto>.CrateJSONResponse(userPack, $"Paquete {index}", $"UserRegistryPlanB");
-            }
+            await serviceDocuments.GetAllEmailFolders();
         }
         private void backgroundWorkerContact_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
