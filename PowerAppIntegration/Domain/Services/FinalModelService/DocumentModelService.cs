@@ -37,15 +37,16 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                     if (!NitFoldersParent.Any())
                     {
-                        string messageLog = $"Capeta {stateFolderParent} sin correos con soportes";
+                        string messageLog = $"Carpeta {stateFolderParent} sin correos con soportes";
 
                         await reportLogAsync(messageLog, Color.Red);
-                        ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "email");
+                        ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "LogRequisitosLegales");
                         continue;
                     }
 
                     foreach (string nitFolder in NitFoldersParent)
                     {
+                        RequisitosLegalesDocuments requisitosLegalesDocuments = new RequisitosLegalesDocuments();
                         string nit = Path.GetFileName(nitFolder);
                         string emailName = string.Empty;
 
@@ -62,9 +63,10 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                         if (userByNit.Any())
                         {
-                            Contacts = userByNit.Select(user => user.GetValueData(Contact.JobTitle.GetDescription())).ToList();
 
-                            Contacts = Contacts.Where(user => user.Contains("contact", StringComparison.InvariantCultureIgnoreCase)).ToList();
+                            Contacts = userByNit
+                                .Where(user => user.GetValueData(Contact.JobTitle.GetDescription()).Contains("contact", StringComparison.InvariantCultureIgnoreCase))
+                                .Select(userFilter => userFilter.GetValueData(Contact.Email.GetDescription())).ToList();
                         }
 
                         if (queryCompany is null)
@@ -72,20 +74,18 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                             string messageLog = $"No se encuentra relacion de contacto empresa";
 
                             await reportLogAsync(messageLog, Color.Red);
-                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                             continue;
                         }
 
                         string EspCompany = queryCompany.GetValueData(Contact.ESP.GetDescription());
 
-                        RequisitosLegalesDocuments requisitosLegalesDocuments = new RequisitosLegalesDocuments();
-
                         if (!Regex.IsMatch(nit, @"^[0-9]+$"))
                         {
-                            string messageLog = $"Capeta con NIT {nitFolder} no es valido";
+                            string messageLog = $"Carpeta con NIT {nitFolder} no es valido";
 
                             await reportLogAsync(messageLog, Color.Red);
-                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                             continue;
                         }
 
@@ -93,10 +93,19 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                         if (!apoderadorFolderParent.Any())
                         {
-                            string messageLog = $"Capeta con NIT {nitFolder} no  tiene carpeta para definir si es apoderado o no";
+                            string messageLog = $"Carpeta con NIT {nitFolder} no  tiene carpeta para definir si es apoderado o no";
 
                             await reportLogAsync(messageLog, Color.Red);
-                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
+                            continue;
+                        }
+
+                        if (apoderadorFolderParent.Count > 1)
+                        {
+                            string messageLog = $"Carpeta  con multiples tipos de actividad ";
+
+                            await reportLogAsync(messageLog, Color.Red);
+                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                             continue;
                         }
 
@@ -104,10 +113,10 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                         if (string.IsNullOrEmpty(apoderadoFolderParent))
                         {
-                            string messageLog = $"Capeta con NIT {nitFolder} error al obtener la carpeta de apoderado";
+                            string messageLog = $"Carpeta con NIT {nitFolder} error al obtener la carpeta de apoderado";
 
                             await reportLogAsync(messageLog, Color.Red);
-                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                             continue;
                         }
 
@@ -125,7 +134,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                             string messageLog = $"No se pudo validar el tipo de apoderado {apoderadoFolderParent}";
 
                             await reportLogAsync(messageLog, Color.Red);
-                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                             continue;
                         }
 
@@ -147,24 +156,24 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                     string messageLog = $"Existen archivos en un formato diferente";
 
                                     await reportLogAsync(messageLog, Color.Red);
-                                    ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                    ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                     continue;
                                 }
 
-                                if (file.Contains("Autoriza"))
+                                if (file.Contains("Autoriza", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    SetAutorizacionDocument(requisitosLegalesDocuments, documentsInFolderNoApoderado);
+                                    string pathAutorizacion = documentsInFolderNoApoderado.FirstOrDefault()!;
+
+                                    SetAutorizacionDocument(requisitosLegalesDocuments, pathAutorizacion);
                                 }
 
-                                if (file.Contains("Opcion"))
+                                if (file.Contains("Opcion", StringComparison.InvariantCultureIgnoreCase))
                                 {
                                     SetOptionalDocument(docsOpcionales, documentsInFolderNoApoderado);
 
                                 }
 
                             }
-
-                            SetESPDocument(EspCompany, requisitosLegalesDocuments);
 
                         }
                         else
@@ -177,7 +186,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 string messageLog = $"Existe mas de una carpeta con el correo de apoderado";
 
                                 await reportLogAsync(messageLog, Color.Red);
-                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                 continue;
                             }
 
@@ -186,7 +195,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 string messageLog = $"No existen carpetas para definir el apoderado";
 
                                 await reportLogAsync(messageLog, Color.Red);
-                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                 continue;
                             }
 
@@ -197,7 +206,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 string messageLog = $"Error al obtener el correo del apoderado";
 
                                 await reportLogAsync(messageLog, Color.Red);
-                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                 continue;
                             }
 
@@ -214,7 +223,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 string messageLog = $"No se encuentran datos del contacto {emailName} en el excel";
 
                                 await reportLogAsync(messageLog, Color.Red);
-                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                 continue;
                             }
 
@@ -227,7 +236,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 string messageLog = $"No se encuentran datos del contacto {emailName} para el nit {nit} en el excel";
 
                                 await reportLogAsync(messageLog, Color.Red);
-                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                 continue;
                             }
 
@@ -240,7 +249,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 string messageLog = $"Error al tomar los datos del contacto  {emailName} para el nit {nit}";
 
                                 await reportLogAsync(messageLog, Color.Red);
-                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                 continue;
                             }
 
@@ -253,10 +262,9 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                 string messageLog = $"Carpeta sin soportes para el correo {emailName}";
 
                                 await reportLogAsync(messageLog, Color.Red);
-                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                 continue;
                             }
-
 
                             foreach (string folderDocument in foldersByEmail)
                             {
@@ -270,21 +278,41 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                     string messageLog = $"Existen archivos en un formato diferente";
 
                                     await reportLogAsync(messageLog, Color.Red);
-                                    ApplicationLogService.GenerateLogByMessage(nit, messageLog, "email");
+                                    ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
                                     continue;
                                 }
 
-                                if (file.Contains("Autoriza"))
+                                string documentPath = documentsInFolderApoderado.FirstOrDefault()!;
+
+                                if (file.Contains("Autoriza", StringComparison.InvariantCultureIgnoreCase))
                                 {
-                                    SetAutorizacionDocument(requisitosLegalesDocuments, foldersByEmail);
+                                    SetAutorizacionDocument(requisitosLegalesDocuments, documentPath);
                                 }
 
+                                if (file.Contains("Opcion", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    SetOptionalDocument(docsOpcionales, documentsInFolderApoderado);
 
+                                }
+
+                                if (file.Contains("poder", StringComparison.InvariantCultureIgnoreCase))
+                                {
+                                    if (string.IsNullOrEmpty(documentPath))
+                                    {
+                                        string messageLog = $"El poder es obligatorio para el correo {emailName}";
+
+                                        await reportLogAsync(messageLog, Color.Red);
+                                        ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
+                                        continue;
+                                    }
+
+                                    SetPoweDocument(requisitosLegalesDocuments, documentPath);
+
+                                }
                             }
-
-
                         }
 
+                        SetESPDocument(EspCompany, requisitosLegalesDocuments);
 
                         requisitosLegalesDocuments.NIT = nit;
                         requisitosLegalesDocuments.Apodera = apoderadoValidacion.Equals("Apoderado");
@@ -293,9 +321,9 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                         requisitosLegalesDocuments.Estado = state;
                         requisitosLegalesDocuments.CorreosContactos = Contacts;
                         requisitosLegalesDocuments.Correo = emailName;
+
+                        activityDocuments.Add(requisitosLegalesDocuments);
                     }
-
-
 
 
                 }
@@ -305,7 +333,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                     string messageLog = $"Error procesando: {ex}";
 
                     await reportLogAsync(messageLog, Color.Red);
-                    ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "email");
+                    ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "LogRequisitosLegales");
                     continue;
 
                 }
@@ -361,25 +389,37 @@ namespace Migration.Domain.Domain.Services.FinalModelService
             };
         }
 
-        private static void SetAutorizacionDocument(RequisitosLegalesDocuments requisitosLegalesDocuments, List<string> documentsInFolderNoApoderado)
+        private static void SetAutorizacionDocument(RequisitosLegalesDocuments requisitosLegalesDocuments, string pathFileAutorizacion)
         {
-            string? filePathAutorizacion = string.Empty;
-
-            if (documentsInFolderNoApoderado.Any())
+            string base64Path = string.Empty;
+            if (!string.IsNullOrEmpty(pathFileAutorizacion))
             {
-                filePathAutorizacion = documentsInFolderNoApoderado.FirstOrDefault();
-            }
-            else
-            {
-                filePathAutorizacion = GeneralData.PDF_EN_BLANCO;
+                base64Path = DocumentService.ConvertPDFtoBase64(pathFileAutorizacion);
             }
 
             requisitosLegalesDocuments.AutorizacionCuantia = new()
             {
                 Type = "file",
-                Value = DocumentService.ConvertPDFtoBase64(filePathAutorizacion),
+                Value = base64Path,
                 Label = "Autorización para contratar en cuantía ilimitada y sin restricciones",
                 Field = "authorizationToContractUnlimitedAmount"
+            };
+        }
+
+        private static void SetPoweDocument(RequisitosLegalesDocuments requisitosLegalesDocuments, string pathFilePoder)
+        {
+            string base64Path = string.Empty;
+            if (!string.IsNullOrEmpty(pathFilePoder))
+            {
+                base64Path = DocumentService.ConvertPDFtoBase64(pathFilePoder);
+            }
+
+            requisitosLegalesDocuments.Poder = new()
+            {
+                Type = "file",
+                Value = base64Path,
+                Label = "poder",
+                Field = "signedAuthorization"
             };
         }
 
