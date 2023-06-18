@@ -29,6 +29,8 @@ namespace Migration.Domain.Domain.Services.FinalModelService
             List<EmailDocuments> lstEmailDocs = new();
             List<RequisitosLegalesDocuments> activityDocuments = new();
 
+            List<ParticipationDataInputDto> participaciones = new();
+
             foreach (string stateFolderParent in stateFolders)
             {
                 try
@@ -39,7 +41,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                     {
                         state = StatusRegisterEnum.Approbed.GetDescription();
                     }
-                    else if (StatusRegisterEnum.Pending.GetDescription().Contains(state, StringComparison.InvariantCultureIgnoreCase))
+                    else if (StatusRegisterEnum.Pending.GetDescription().IndexOf(state, StringComparison.CurrentCultureIgnoreCase) >= 0)
                     {
                         state = StatusRegisterEnum.Pending.GetDescription();
                     }
@@ -389,7 +391,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                             }
                         };
 
-                        List<ParticipationDataInputDto> participaciones = new();
+                  
                         List<ParticipationDocumentDataDto> participationDocumentDatas = new()
                         {
                             requisitosLegalesDocuments.Poder,
@@ -414,9 +416,6 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                             ParticipationFormData = participationForms,
                             ParticipationDocumentData = participationDocumentDatas
                         });
-
-                        await MechanismService.SaveDynamicFormAsync(participaciones.FirstOrDefault()!);
-
                     }
 
 
@@ -430,6 +429,11 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                     ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "LogRequisitosLegales");
                     continue;
 
+                }
+
+                foreach (ParticipationDataInputDto participacion in participaciones)
+                {
+                    await MechanismService.SaveDynamicFormAsync(participacion);
                 }
             }
 

@@ -7,7 +7,7 @@ namespace Migration.Domain.Infrastructure.Adapters;
 public class MechanismService
 {
     //private const string LOGS_PATH = @"C:\\Users\\guillermo.gallego\\Downloads\\PARTICIPACIONES.TXT";
-    private const string PATH_DYNAMIC_FORM = "https://localhost:5443/api/Participation/SaveDynamicForm";
+    private const string PATH_DYNAMIC_FORM = "https://localhost:5001/api/Participation/SaveDynamicForm";
 
     private readonly GenericHttpRequest GenericHttpRequest;
 
@@ -18,8 +18,9 @@ public class MechanismService
 
     public async Task SaveDynamicFormAsync(ParticipationDataInputDto participationDataInput)
     {
-        Guid participationId = await GenericHttpRequest.DynamicFromPostDataAsync<Guid>(PATH_DYNAMIC_FORM, new CreateDynamicFormCommand(participationDataInput));
-        ApplicationLogService.GenerateLogByMessage(nameof(participationId), participationId.ToString(), "PARTICIPATIONIDS");
+        string participation = await GenericHttpRequest.DynamicFromPostDataAsync(PATH_DYNAMIC_FORM, new CreateDynamicFormCommand(participationDataInput));
+
+        ApplicationLogService.GenerateLogByMessage(participationDataInput.NIT,participation, "PARTICIPATIONIDS");
     }
 }
 

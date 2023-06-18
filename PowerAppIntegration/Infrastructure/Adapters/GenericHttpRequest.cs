@@ -10,7 +10,7 @@ namespace Migration.Domain.Infrastructure.Adapters
 {
     public class GenericHttpRequest
     {
-        private const int EXPONENT = 2;
+        private const int EXPONENT = 1;
         private const string REQUEST_ERROR_REST = "Error llamado";
         public async Task<T> PostDataAsync<T>(string path, object content, string ocpSubscriptionKey) where T : class, new()
         {
@@ -27,15 +27,14 @@ namespace Migration.Domain.Infrastructure.Adapters
 
         }
 
-        public async Task<T> DynamicFromPostDataAsync<T>(string path, object content)
+        public async Task<string> DynamicFromPostDataAsync(string path, object content)
         {
             using (var restClient = new HttpClient())
             {
-                return await GetRetryPolicy(MethodBase.GetCurrentMethod().Name).ExecuteAsync(async () =>
-                {
-                    var response = await restClient.PostAsync(path, ObjectAsStringContent(content)).ConfigureAwait(false);
-                    return JsonConvert.DeserializeObject<T>(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-                }).ConfigureAwait(false);
+                var response = await restClient.PostAsync(path, ObjectAsStringContent(content)).ConfigureAwait(false);
+
+                return await response.Content.ReadAsStringAsync();
+
             }
 
         }
@@ -93,7 +92,7 @@ namespace Migration.Domain.Infrastructure.Adapters
 
         private int GetRetryCount()
         {
-            var retryCount = "3";
+            var retryCount = "1";
 
             if (!int.TryParse(retryCount, out int retryCountValue))
             {
