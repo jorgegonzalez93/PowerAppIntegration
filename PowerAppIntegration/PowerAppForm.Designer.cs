@@ -42,6 +42,7 @@
             groupBox4 = new GroupBox();
             report_log = new RichTextBox();
             dataGridView1 = new DataGridView();
+            reporteLogs = new RichTextBox();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -55,50 +56,50 @@
             groupBox1.Controls.Add(groupBox2);
             groupBox1.Dock = DockStyle.Top;
             groupBox1.Location = new Point(0, 0);
-            groupBox1.Margin = new Padding(4, 5, 4, 5);
             groupBox1.Name = "groupBox1";
-            groupBox1.Padding = new Padding(4, 5, 4, 5);
-            groupBox1.Size = new Size(1924, 337);
+            groupBox1.Size = new Size(1123, 202);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             // 
             // groupBox3
             // 
+            groupBox3.Controls.Add(reporteLogs);
             groupBox3.Controls.Add(ProcesarProgressBar);
             groupBox3.Controls.Add(label1);
             groupBox3.Controls.Add(LimpiarProgressBar);
             groupBox3.Dock = DockStyle.Fill;
-            groupBox3.Location = new Point(724, 29);
+            groupBox3.Location = new Point(507, 19);
+            groupBox3.Margin = new Padding(2, 2, 2, 2);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(1196, 303);
+            groupBox3.Padding = new Padding(2, 2, 2, 2);
+            groupBox3.Size = new Size(613, 180);
             groupBox3.TabIndex = 6;
             groupBox3.TabStop = false;
             // 
             // ProcesarProgressBar
             // 
             ProcesarProgressBar.Dock = DockStyle.Top;
-            ProcesarProgressBar.Location = new Point(3, 60);
-            ProcesarProgressBar.Margin = new Padding(4, 5, 4, 5);
+            ProcesarProgressBar.Location = new Point(2, 38);
             ProcesarProgressBar.Name = "ProcesarProgressBar";
-            ProcesarProgressBar.Size = new Size(1190, 38);
+            ProcesarProgressBar.Size = new Size(609, 23);
             ProcesarProgressBar.TabIndex = 8;
             // 
             // label1
             // 
             label1.AutoSize = true;
             label1.Dock = DockStyle.Bottom;
-            label1.Location = new Point(3, 275);
-            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Location = new Point(2, 163);
             label1.Name = "label1";
-            label1.Size = new Size(0, 25);
+            label1.Size = new Size(0, 15);
             label1.TabIndex = 7;
             // 
             // LimpiarProgressBar
             // 
             LimpiarProgressBar.Dock = DockStyle.Top;
-            LimpiarProgressBar.Location = new Point(3, 27);
+            LimpiarProgressBar.Location = new Point(2, 18);
+            LimpiarProgressBar.Margin = new Padding(2, 2, 2, 2);
             LimpiarProgressBar.Name = "LimpiarProgressBar";
-            LimpiarProgressBar.Size = new Size(1190, 33);
+            LimpiarProgressBar.Size = new Size(609, 20);
             LimpiarProgressBar.TabIndex = 6;
             // 
             // groupBox2
@@ -107,21 +108,18 @@
             groupBox2.Controls.Add(button2);
             groupBox2.Controls.Add(button1);
             groupBox2.Dock = DockStyle.Left;
-            groupBox2.Location = new Point(4, 29);
-            groupBox2.Margin = new Padding(4, 5, 4, 5);
+            groupBox2.Location = new Point(3, 19);
             groupBox2.Name = "groupBox2";
-            groupBox2.Padding = new Padding(4, 5, 4, 5);
-            groupBox2.Size = new Size(720, 303);
+            groupBox2.Size = new Size(504, 180);
             groupBox2.TabIndex = 5;
             groupBox2.TabStop = false;
             // 
             // button3
             // 
             button3.Dock = DockStyle.Bottom;
-            button3.Location = new Point(4, 184);
-            button3.Margin = new Padding(4, 5, 4, 5);
+            button3.Location = new Point(3, 108);
             button3.Name = "button3";
-            button3.Size = new Size(712, 38);
+            button3.Size = new Size(498, 23);
             button3.TabIndex = 8;
             button3.Text = "Importar Datos";
             button3.UseVisualStyleBackColor = true;
@@ -130,10 +128,9 @@
             // button2
             // 
             button2.Dock = DockStyle.Bottom;
-            button2.Location = new Point(4, 222);
-            button2.Margin = new Padding(4, 5, 4, 5);
+            button2.Location = new Point(3, 131);
             button2.Name = "button2";
-            button2.Size = new Size(712, 38);
+            button2.Size = new Size(498, 23);
             button2.TabIndex = 7;
             button2.Text = "Limpiar Datos";
             button2.UseVisualStyleBackColor = true;
@@ -142,10 +139,9 @@
             // button1
             // 
             button1.Dock = DockStyle.Bottom;
-            button1.Location = new Point(4, 260);
-            button1.Margin = new Padding(4, 5, 4, 5);
+            button1.Location = new Point(3, 154);
             button1.Name = "button1";
-            button1.Size = new Size(712, 38);
+            button1.Size = new Size(498, 23);
             button1.TabIndex = 6;
             button1.Text = "Procesar Datos";
             button1.UseVisualStyleBackColor = true;
@@ -170,20 +166,17 @@
             groupBox4.Controls.Add(report_log);
             groupBox4.Controls.Add(dataGridView1);
             groupBox4.Dock = DockStyle.Fill;
-            groupBox4.Location = new Point(0, 337);
-            groupBox4.Margin = new Padding(4, 5, 4, 5);
+            groupBox4.Location = new Point(0, 202);
             groupBox4.Name = "groupBox4";
-            groupBox4.Padding = new Padding(4, 5, 4, 5);
-            groupBox4.Size = new Size(1924, 626);
+            groupBox4.Size = new Size(1123, 327);
             groupBox4.TabIndex = 1;
             groupBox4.TabStop = false;
             // 
             // report_log
             // 
-            report_log.Location = new Point(736, -155);
-            report_log.Margin = new Padding(4, 5, 4, 5);
+            report_log.Location = new Point(515, -93);
             report_log.Name = "report_log";
-            report_log.Size = new Size(1194, 142);
+            report_log.Size = new Size(837, 87);
             report_log.TabIndex = 5;
             report_log.Text = "";
             // 
@@ -191,23 +184,31 @@
             // 
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Dock = DockStyle.Fill;
-            dataGridView1.Location = new Point(4, 29);
-            dataGridView1.Margin = new Padding(4, 5, 4, 5);
+            dataGridView1.Location = new Point(3, 19);
             dataGridView1.Name = "dataGridView1";
             dataGridView1.RowHeadersWidth = 62;
             dataGridView1.RowTemplate.Height = 25;
-            dataGridView1.Size = new Size(1916, 592);
+            dataGridView1.Size = new Size(1117, 305);
             dataGridView1.TabIndex = 4;
             dataGridView1.KeyDown += dataGridView1_KeyDown;
             // 
+            // reporteLogs
+            // 
+            reporteLogs.BackColor = SystemColors.MenuText;
+            reporteLogs.Dock = DockStyle.Bottom;
+            reporteLogs.Location = new Point(2, 67);
+            reporteLogs.Name = "reporteLogs";
+            reporteLogs.Size = new Size(609, 96);
+            reporteLogs.TabIndex = 9;
+            reporteLogs.Text = "";
+            // 
             // PowerAppForm
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1924, 963);
+            ClientSize = new Size(1123, 529);
             Controls.Add(groupBox4);
             Controls.Add(groupBox1);
-            Margin = new Padding(4, 5, 4, 5);
             Name = "PowerAppForm";
             Text = "Power App Integration";
             groupBox1.ResumeLayout(false);
@@ -235,5 +236,6 @@
         private Button button3;
         private Button button2;
         private Button button1;
+        private RichTextBox reporteLogs;
     }
 }

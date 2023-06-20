@@ -1,5 +1,4 @@
-﻿using MediatR;
-using Migration.Domain.Domain.DTOs.MigracionActividad;
+﻿using Migration.Domain.Domain.DTOs.MigracionActividad;
 using Migration.Domain.Infrastructure.Logs;
 
 namespace Migration.Domain.Infrastructure.Adapters;
@@ -16,11 +15,13 @@ public class MechanismService
         GenericHttpRequest = new();
     }
 
-    public async Task SaveDynamicFormAsync(ParticipationDataInputDto participationDataInput)
+    public async Task<string> SaveDynamicFormAsync(ParticipationDataInputDto participationDataInput)
     {
         string participation = await GenericHttpRequest.DynamicFromPostDataAsync(PATH_DYNAMIC_FORM, new CreateDynamicFormCommand(participationDataInput));
 
-        ApplicationLogService.GenerateLogByMessage(participationDataInput.NIT,participation, "PARTICIPATIONIDS");
+        ApplicationLogService.GenerateLogByMessage(participationDataInput.NIT, participation, "PARTICIPATIONIDS");
+
+        return participation;
     }
 }
 

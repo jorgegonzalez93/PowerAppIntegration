@@ -178,9 +178,9 @@ namespace PowerAppIntegration
                 // Agregar el mensaje al RichTextBox en segundo plano
                 this.Invoke(new Action(() =>
                 {
-                    report_log.SelectionColor = color;
-                    report_log.AppendText(mensaje + Environment.NewLine);
-                    report_log.ScrollToCaret();
+                    reporteLogs.SelectionColor = color;
+                    reporteLogs.AppendText(mensaje + Environment.NewLine);
+                    reporteLogs.ScrollToCaret();
                 }));
             });
         }

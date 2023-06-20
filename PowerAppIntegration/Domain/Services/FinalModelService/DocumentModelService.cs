@@ -37,7 +37,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                 {
                     string state = Path.GetFileName(stateFolderParent);
 
-                    if (StatusRegisterEnum.Approbed.GetDescription().Contains(state,StringComparison.InvariantCultureIgnoreCase))
+                    if (StatusRegisterEnum.Approbed.GetDescription().Contains(state, StringComparison.InvariantCultureIgnoreCase))
                     {
                         state = StatusRegisterEnum.Approbed.GetDescription();
                     }
@@ -391,7 +391,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                             }
                         };
 
-                  
+
                         List<ParticipationDocumentDataDto> participationDocumentDatas = new()
                         {
                             requisitosLegalesDocuments.Poder,
@@ -431,10 +431,14 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                 }
 
-                foreach (ParticipationDataInputDto participacion in participaciones)
-                {
-                    await MechanismService.SaveDynamicFormAsync(participacion);
-                }
+
+            }
+
+            foreach (ParticipationDataInputDto participacion in participaciones)
+            {
+                var responseRequest = await MechanismService.SaveDynamicFormAsync(participacion);
+
+                await reportLogAsync(responseRequest, Color.Purple);
             }
 
             return lstEmailDocs;
