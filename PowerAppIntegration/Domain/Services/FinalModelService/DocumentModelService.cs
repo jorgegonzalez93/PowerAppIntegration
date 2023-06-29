@@ -24,6 +24,8 @@ namespace Migration.Domain.Domain.Services.FinalModelService
         {
             string stringPath = GeneralData.DOCUMENTS_PATH;
 
+            stringPath = @"C:\\Users\\jorge.gonzalez\\Desktop\\SoportesReales\\Laboratorio";
+
             var stateFolders = Directory.GetDirectories(stringPath);
 
             List<EmailDocuments> lstEmailDocs = new();
@@ -206,7 +208,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
 
                             if (FolderParentApoderado.Count > 1)
                             {
-                                string messageLog = $"Existe mas de una carpeta con el correo de apoderado";
+                                string messageLog = $"Existe mas de una carpeta con el correo de apoderado nit | {nit}";
 
                                 await reportLogAsync(messageLog, Color.Red);
                                 ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogRequisitosLegales");
@@ -365,7 +367,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                     new ParticipationFormFieldDataDto
                                     {
                                         Type = "radio",
-                                        Value = requisitosLegalesDocuments.Esp.ToString(),
+                                        Value = requisitosLegalesDocuments.Esp.ToString().ToLower(),
                                         Field = "isESP"
                                     }
                                 }
@@ -378,7 +380,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                                     new ParticipationFormFieldDataDto
                                     {
                                         Type = "checkbox",
-                                        Value = requisitosLegalesDocuments.Apodera.ToString(),
+                                        Value = requisitosLegalesDocuments.Apodera.ToString().ToLower(),
                                         Field = "hasRepresentative"
                                     },
                                     new ParticipationFormFieldDataDto
@@ -414,8 +416,12 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                             MechanismActivityId = new Guid("A32ACCEA-10C2-497C-1789-08DB69CC9FED"),
                             State = requisitosLegalesDocuments.Estado,
                             ParticipationFormData = participationForms,
-                            ParticipationDocumentData = participationDocumentDatas
+                            ParticipationDocumentData = participationDocumentDatas,
+                            ContactEmails  = requisitosLegalesDocuments.CorreosContactos
                         });
+
+                        await reportLogAsync($"Registro con nit| {requisitosLegalesDocuments.NIT}", Color.Green);
+
                     }
 
 

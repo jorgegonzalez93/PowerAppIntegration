@@ -42,7 +42,7 @@ namespace Migration.Domain.Domain
         public const string LABORATOTY_PATH = @"C:\Users\jorge.gonzalez\Desktop\SoportesReales\Laboratorio";
         //public const string DOCUMENTS_PATH = "C:\\Users\\jorge.gonzalez\\Desktop\\SoportesReales";
         public const string DUMMY_PDF = "C:\\Users\\jorge.gonzalez\\Desktop\\DocumentosMigracion\\Dummy_PDF";
-        public const string PDF_EN_BLANCO = @"C:\Users\jorge.gonzalez\source\repos\Aplicacion para organizar datos MVM\Insumos\blank.pdf";
+        public const string PDF_EN_BLANCO = @"C:\Users\jorge.gonzalez\source\repos\Migracion de Actividades\Insumos\blank.pdf";
 
         public const string CERTIFICADO_EXISTENCIA = "Existencia";
         public const string RUT = "RUT";
