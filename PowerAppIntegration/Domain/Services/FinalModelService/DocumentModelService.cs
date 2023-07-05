@@ -4,7 +4,10 @@ using Migration.Domain.Domain.Helpers;
 using Migration.Domain.Infrastructure.Adapters;
 using Migration.Domain.Infrastructure.Logs;
 using System.Data;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using System.Xml.Linq;
 using static PowerAppIntegration.PowerAppForm;
 
 namespace Migration.Domain.Domain.Services.FinalModelService
@@ -417,7 +420,7 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                             State = requisitosLegalesDocuments.Estado,
                             ParticipationFormData = participationForms,
                             ParticipationDocumentData = participationDocumentDatas,
-                            ContactEmails  = requisitosLegalesDocuments.CorreosContactos
+                            ContactEmails = requisitosLegalesDocuments.CorreosContactos
                         });
 
                         await reportLogAsync($"Registro con nit| {requisitosLegalesDocuments.NIT}", Color.Green);
@@ -448,6 +451,267 @@ namespace Migration.Domain.Domain.Services.FinalModelService
             }
 
             return lstEmailDocs;
+        }
+
+
+
+        public async Task<IEnumerable<String>> interests_declarations()
+        {
+            string stringPath = @"C:\\Users\\juan.betancur\\Desktop\\DeclaracioInteres";
+
+
+            var nitFolders = Directory.GetDirectories(stringPath);
+
+            List<ParticipationDataInputDto> participaciones = new();
+            List<String> nits = new();
+
+
+            foreach (string nit in nitFolders)
+            {
+                try
+                {
+                    List<ParticipationDocumentDataDto> docsOpcionales = new()
+                    {
+                        SetDocument(string.Empty, "Plantas Nuevas o Especiales u otras", "Plantas Nuevas o Especiales u otras"),
+
+                        SetDocument(string.Empty, "Plantas Existentes", "Plantas Existentes")
+                    };
+
+
+
+                    string companyNit = Path.GetFileName(nit);
+                    DeclaracionInteresDto DeclaracionInteresDocuments = new DeclaracionInteresDto();
+                    nits.Add(companyNit);
+
+                    if (!Regex.IsMatch(companyNit, @"^[0-9]+$"))
+                    {
+                        string messageLog = $"Carpeta con NIT {companyNit} no es valido";
+
+                        await reportLogAsync(messageLog, Color.Red);
+                        ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogDeclaracionInteres");
+                        continue;
+                    }
+
+                    List<string> documentFolderParent = Directory.GetDirectories(nit).ToList();
+
+                    if (!documentFolderParent.Any())
+                    {
+                        string messageLog = $"Carpeta con NIT {companyNit} no  tiene carpeta no contienen carpetas relacionadas para esta actividad";
+
+                        await reportLogAsync(messageLog, Color.Red);
+                        ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogDeclaracionInteres");
+                        continue;
+                    }
+
+                    List<string> ValidationList = new List<string>
+                        {
+                            "Plantas especiales",
+                            "Plantas existentes"
+                        };
+
+
+                    foreach (string documentFolderPath in documentFolderParent)
+                    {
+
+                        string documentFolder = Path.GetFileName(documentFolderPath);
+
+                        if (ValidationList.Contains(documentFolder))
+                        {
+
+                            var documento = Directory.GetFiles(documentFolderPath).FirstOrDefault();
+
+                            if (documento != null)
+                            {
+                                if (documentFolder == "Plantas especiales")
+                                {
+                                    docsOpcionales.First(p => p.Label.Equals("Plantas Nuevas o Especiales u otras")).Value =
+                                        SetDocument(documento, "Plantas Nuevas o Especiales u otras", "Plantas Nuevas o Especiales u otras").Value;
+
+                                }
+                                else
+                                {
+
+                                    docsOpcionales.First(p => p.Label.Equals("Plantas Existentes")).Value =
+                                        SetDocument(documento, "Plantas Existentes", "Plantas Existentes").Value;
+                                }
+                            }
+
+                        }
+                    }
+
+
+                    participaciones.Add(new()
+                    {
+                        MechanismActivityId = new Guid("1BB0F9A4-5B8D-497E-7700-08DB798AD179"),
+                        NIT = companyNit,
+                        ParticipationDocumentData = docsOpcionales,
+
+                    });
+
+                }
+                catch (Exception ex)
+                {
+
+                    string messageLog = $"Error procesando: {ex}";
+
+                    await reportLogAsync(messageLog, Color.Red);
+                    ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "LogDeclaracionInteres");
+                    continue;
+
+
+                }
+
+                foreach (ParticipationDataInputDto participacion in participaciones)
+                {
+                    var responseRequest = await MechanismService.SaveDynamicFormAsync(participacion);
+
+                    await reportLogAsync(responseRequest, Color.Purple);
+                }
+            }
+
+            return nits;
+        }
+
+
+
+        public async Task<IEnumerable<String>> withdrawal_declaration()
+        {
+            string stringPath = GeneralData.DOCUMENTS_PATH;
+
+            stringPath = @"C:\\Users\\juan.betancur\\Desktop\\DeclaracioRetiro";
+
+            var nitFolders = Directory.GetDirectories(stringPath);
+
+            List<ParticipationDataInputDto> participaciones = new();
+            List<String> nits = new();
+
+
+            foreach (string nit in nitFolders)
+            {
+                try
+                {
+
+                    List<ParticipationDocumentDataDto> docsOpcionales = new()
+                    {
+                        SetDocument(string.Empty, "Declaración de retiro", "Declaración de retiro"),
+
+                        SetDocument(string.Empty, "Información complementaria","Información complementaria")
+                    };
+
+                    string companyNit = Path.GetFileName(nit);
+                    DeclaracionInteresDto DeclaracionRetiroDocuments = new DeclaracionInteresDto();
+                    nits.Add(companyNit);
+
+                    if (!Regex.IsMatch(companyNit, @"^[0-9]+$"))
+                    {
+                        string messageLog = $"Carpeta con NIT {companyNit} no es valido";
+
+                        await reportLogAsync(messageLog, Color.Red);
+                        ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogDeclaracionRetiro");
+                        continue;
+                    }
+
+                    List<string> documentFolderParent = Directory.GetDirectories(nit).ToList();
+
+                    if (!documentFolderParent.Any())
+                    {
+                        string messageLog = $"Carpeta con NIT {companyNit} no  tiene carpeta no contienen carpetas relacionadas para esta actividad";
+
+                        await reportLogAsync(messageLog, Color.Red);
+                        ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogDeclaracionRetiro");
+                        continue;
+                    }
+
+                    List<string> ValidationList = new List<string>
+                        {
+                            "Declaracion retiro",
+                            "Informacion complementaria"
+                    };
+
+                    ///validacion documento obligatorio
+                    if (!documentFolderParent.Any(p=>p.Contains("Declaracion retiro")))
+                    {
+                        string messageLog = $"Carpeta con NIT {companyNit} no  tiene carpeta no contienen carpeta Declaracion de retiro y es obligatoria";
+
+                        await reportLogAsync(messageLog, Color.Red);
+                        ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogDeclaracionRetiro");
+                        continue;
+                    }
+                    else
+                    {
+                        var documentFolderPath = documentFolderParent.FirstOrDefault(p => p.Contains("Declaracion retiro"));
+
+                        var documento = Directory.GetFiles(documentFolderPath).FirstOrDefault();
+
+                        if (documento is null)
+                        {
+                            string messageLog = $"Carpeta con NIT {companyNit} no  tiene archivos dentro de la carpeta Declaracion de retiro y es obligatorio";
+
+                            await reportLogAsync(messageLog, Color.Red);
+                            ApplicationLogService.GenerateLogByMessage(nit, messageLog, "LogDeclaracionRetiro");
+                            continue;
+                        }
+                    }
+                    ///fin validacion documento obligatorio
+
+                    foreach (string documentFolderPath in documentFolderParent)
+                    {
+
+                        string documentFolder = Path.GetFileName(documentFolderPath);
+
+                        if (ValidationList.Contains(documentFolder))
+                        {
+                            var documento = Directory.GetFiles(documentFolderPath).FirstOrDefault();
+
+                            if (documento != null)
+                            {
+                                if (documentFolder == "Declaracion retiro")
+                                {
+                                    docsOpcionales.First(p => p.Label.Equals("Declaración de retiro")).Value =
+                                        SetDocument(documento, "Declaración de retiro", "Declaración de retiro").Value;
+
+                                }
+                                else
+                                {
+
+                                    docsOpcionales.First(p => p.Label.Equals("Información complementaria")).Value =
+                                        SetDocument(documento, "Información complementaria", "Información complementaria").Value;
+                                }
+                            }
+
+                        }
+                    }
+
+
+                    participaciones.Add(new()
+                    {
+                        MechanismActivityId = new Guid("4E972088-9FB0-41FC-7701-08DB798AD179"),
+                        NIT = companyNit,
+                        ParticipationDocumentData = docsOpcionales,
+                    });
+
+                }
+                catch (Exception ex)
+                {
+
+                    string messageLog = $"Error procesando: {ex}";
+
+                    await reportLogAsync(messageLog, Color.Red);
+                    ApplicationLogService.GenerateLogByMessage("Error general", messageLog, "LogDeclaracionRetiro");
+                    continue;
+
+
+                }
+
+                foreach (ParticipationDataInputDto participacion in participaciones)
+                {
+                    var responseRequest = await MechanismService.SaveDynamicFormAsync(participacion);
+
+                    await reportLogAsync(responseRequest, Color.Purple);
+                }
+            }
+
+            return nits;
         }
 
         private static void SetOptionalDocument(List<ParticipationDocumentDataDto> docsOpcionales, List<string> documentsInFolderNoApoderado)
@@ -547,6 +811,24 @@ namespace Migration.Domain.Domain.Services.FinalModelService
                 Field = "representationAndExistenceCertification"
             };
         }
+
+        private static ParticipationDocumentDataDto SetDocument(string pathFile, string label, string field)
+        {
+            string base64Path = string.Empty;
+            if (!string.IsNullOrEmpty(pathFile))
+            {
+                base64Path = DocumentService.ConvertPDFtoBase64(pathFile);
+            }
+
+            return new ParticipationDocumentDataDto()
+            {
+                Type = "file",
+                Value = base64Path,
+                Label = label,
+                Field = field
+            };
+        }
+
 
         public class EmailDocuments
         {

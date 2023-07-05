@@ -30,10 +30,13 @@
         {
             groupBox1 = new GroupBox();
             groupBox3 = new GroupBox();
+            reporteLogs = new RichTextBox();
             ProcesarProgressBar = new ProgressBar();
             label1 = new Label();
             LimpiarProgressBar = new ProgressBar();
             groupBox2 = new GroupBox();
+            button5 = new Button();
+            button4 = new Button();
             button3 = new Button();
             button2 = new Button();
             button1 = new Button();
@@ -42,7 +45,8 @@
             groupBox4 = new GroupBox();
             report_log = new RichTextBox();
             dataGridView1 = new DataGridView();
-            reporteLogs = new RichTextBox();
+            backgroundWorkerDeclaracionInteres = new System.ComponentModel.BackgroundWorker();
+            backgroundWorkerDeclaracionRetiro = new System.ComponentModel.BackgroundWorker();
             groupBox1.SuspendLayout();
             groupBox3.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -69,12 +73,22 @@
             groupBox3.Controls.Add(LimpiarProgressBar);
             groupBox3.Dock = DockStyle.Fill;
             groupBox3.Location = new Point(507, 19);
-            groupBox3.Margin = new Padding(2, 2, 2, 2);
+            groupBox3.Margin = new Padding(2);
             groupBox3.Name = "groupBox3";
-            groupBox3.Padding = new Padding(2, 2, 2, 2);
+            groupBox3.Padding = new Padding(2);
             groupBox3.Size = new Size(613, 180);
             groupBox3.TabIndex = 6;
             groupBox3.TabStop = false;
+            // 
+            // reporteLogs
+            // 
+            reporteLogs.BackColor = SystemColors.MenuText;
+            reporteLogs.Dock = DockStyle.Bottom;
+            reporteLogs.Location = new Point(2, 67);
+            reporteLogs.Name = "reporteLogs";
+            reporteLogs.Size = new Size(609, 96);
+            reporteLogs.TabIndex = 9;
+            reporteLogs.Text = "";
             // 
             // ProcesarProgressBar
             // 
@@ -97,13 +111,15 @@
             // 
             LimpiarProgressBar.Dock = DockStyle.Top;
             LimpiarProgressBar.Location = new Point(2, 18);
-            LimpiarProgressBar.Margin = new Padding(2, 2, 2, 2);
+            LimpiarProgressBar.Margin = new Padding(2);
             LimpiarProgressBar.Name = "LimpiarProgressBar";
             LimpiarProgressBar.Size = new Size(609, 20);
             LimpiarProgressBar.TabIndex = 6;
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(button5);
+            groupBox2.Controls.Add(button4);
             groupBox2.Controls.Add(button3);
             groupBox2.Controls.Add(button2);
             groupBox2.Controls.Add(button1);
@@ -113,6 +129,26 @@
             groupBox2.Size = new Size(504, 180);
             groupBox2.TabIndex = 5;
             groupBox2.TabStop = false;
+            // 
+            // button5
+            // 
+            button5.Location = new Point(4, 79);
+            button5.Name = "button5";
+            button5.Size = new Size(497, 23);
+            button5.TabIndex = 10;
+            button5.Text = "Declaración de interes";
+            button5.UseVisualStyleBackColor = true;
+            button5.Click += Declaracion_de_interes_Click;
+            // 
+            // button4
+            // 
+            button4.Location = new Point(6, 50);
+            button4.Name = "button4";
+            button4.Size = new Size(494, 23);
+            button4.TabIndex = 9;
+            button4.Text = "Declaración de retiro";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += Declaracion_de_retiro_Click;
             // 
             // button3
             // 
@@ -192,15 +228,13 @@
             dataGridView1.TabIndex = 4;
             dataGridView1.KeyDown += dataGridView1_KeyDown;
             // 
-            // reporteLogs
+            // backgroundWorkerDeclaracionInteres
             // 
-            reporteLogs.BackColor = SystemColors.MenuText;
-            reporteLogs.Dock = DockStyle.Bottom;
-            reporteLogs.Location = new Point(2, 67);
-            reporteLogs.Name = "reporteLogs";
-            reporteLogs.Size = new Size(609, 96);
-            reporteLogs.TabIndex = 9;
-            reporteLogs.Text = "";
+            backgroundWorkerDeclaracionInteres.DoWork += backgroundWorkerDeclaracionDeInteres_DoWork;
+            // 
+            // backgroundWorkerDeclaracionRetiro
+            // 
+            backgroundWorkerDeclaracionRetiro.DoWork += backgroundWorkerDeclaracionRetiro_DoWork;
             // 
             // PowerAppForm
             // 
@@ -237,5 +271,9 @@
         private Button button2;
         private Button button1;
         private RichTextBox reporteLogs;
+        private Button button5;
+        private Button button4;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerDeclaracionInteres;
+        private System.ComponentModel.BackgroundWorker backgroundWorkerDeclaracionRetiro;
     }
 }

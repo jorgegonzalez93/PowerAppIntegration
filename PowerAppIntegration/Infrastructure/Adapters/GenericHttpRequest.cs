@@ -34,7 +34,6 @@ namespace Migration.Domain.Infrastructure.Adapters
                 var response = await restClient.PostAsync(path, ObjectAsStringContent(content)).ConfigureAwait(false);
 
                 return await response.Content.ReadAsStringAsync();
-
             }
 
         }

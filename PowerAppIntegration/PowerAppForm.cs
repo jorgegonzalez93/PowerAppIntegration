@@ -184,5 +184,45 @@ namespace PowerAppIntegration
                 }));
             });
         }
+
+
+        #region DECLARACION_DE_INTERES
+
+        private void Declaracion_de_interes_Click(object sender, EventArgs e)
+        {
+            if (backgroundWorkerDeclaracionInteres.IsBusy)
+            {
+                return;
+            }
+
+            backgroundWorkerDeclaracionInteres.RunWorkerAsync();
+        }
+
+        #endregion
+
+
+        #region DECLARACION_DE_RETIRO
+
+        private void Declaracion_de_retiro_Click(object sender, EventArgs e)
+        {
+            if (backgroundWorkerDeclaracionRetiro.IsBusy)
+            {
+                return;
+            }
+
+            backgroundWorkerDeclaracionRetiro.RunWorkerAsync();
+        }
+
+        #endregion
+
+        private async void backgroundWorkerDeclaracionDeInteres_DoWork(object sender, DoWorkEventArgs e)
+        {
+            await serviceDocuments.interests_declarations();
+        }
+
+        private async void backgroundWorkerDeclaracionRetiro_DoWork(object sender, DoWorkEventArgs e)
+        {
+            await serviceDocuments.withdrawal_declaration();
+        }
     }
 }
