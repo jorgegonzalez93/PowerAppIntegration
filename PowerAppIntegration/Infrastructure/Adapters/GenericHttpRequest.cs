@@ -29,13 +29,21 @@ namespace Migration.Domain.Infrastructure.Adapters
 
         public async Task<string> DynamicFromPostDataAsync(string path, object content)
         {
-            using (var restClient = new HttpClient())
+            try
             {
-                var response = await restClient.PostAsync(path, ObjectAsStringContent(content)).ConfigureAwait(false);
+                using (var restClient = new HttpClient())
+                {
+                    var response = await restClient.PostAsync(path, ObjectAsStringContent(content)).ConfigureAwait(false);
 
-                return await response.Content.ReadAsStringAsync();
+                    return await response.Content.ReadAsStringAsync();
 
+                }
             }
+            catch (Exception ex)
+            {
+
+                return ex.ToString();
+            }       
 
         }
 
